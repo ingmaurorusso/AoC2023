@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -12,7 +14,7 @@ namespace{
 
 constexpr std::string_view Input =
 
-true ?
+false ?
 
 "seeds: 79 14 55 13\n"
 "\n"
@@ -281,8 +283,20 @@ bool toUnsigned(const std::string& s, unsigned long& res) {
 
 } // namespace
 
-auto day05Part1()
+auto day05Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
+
     Mapping seedToSoil;
     Mapping soilToFert;
     Mapping fertToWater;
@@ -290,9 +304,6 @@ auto day05Part1()
     Mapping lightToTemp;
     Mapping tempToHum;
     Mapping humToLoc;
-
-    std::stringstream inputStream{};
-    inputStream << Input;
 
     unsigned nRepeatedSeed{0U};
     size_t nSeeds{};
@@ -341,12 +352,12 @@ auto day05Part1()
 
     constexpr auto MaxLineLength = 1000;
     std::array<char, MaxLineLength + 1> cc{};
-    while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
+    while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
         std::string errorLine = "Input error at the line n. "
             + std::to_string(static_cast<int>(lineCount)) + " : ";
 
-        auto c = static_cast<size_t>(inputStream.gcount());
+        auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
             throw std::invalid_argument(
@@ -506,7 +517,8 @@ auto day05Part1()
 int main()
 {
     try {
-        day05Part1();
+        day05Part1(Input, false);
+        // day05Part1("./05_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cerr << "Bad input: " << ex.what() << std::endl;
         return 1;

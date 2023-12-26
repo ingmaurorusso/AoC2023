@@ -1,8 +1,10 @@
 #include <array>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <sstream>
 #include <string>
@@ -1418,8 +1420,20 @@ constexpr bool CheckMultipleReflections = false; // when true, slows down the se
 
 } // namespace
 
-auto day13Part2()
+auto day13Part2(std::string_view streamSource, bool sourceIsFilePath)
 {
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
+
     using Coord = size_t;
     using Reflection = std::pair<bool, Coord>;
 
@@ -1635,9 +1649,6 @@ auto day13Part2()
         };
     };
 
-    std::stringstream inputStream{};
-    inputStream << Input;
-
     unsigned patternCount{0U};
     unsigned nonEmptyLines{0U};
 
@@ -1645,12 +1656,12 @@ auto day13Part2()
 
     constexpr auto MaxLineLength = 1000;
     std::array<char, MaxLineLength + 1> cc{};
-    while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
+    while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
         errorLine = "Input error at the line n. " + std::to_string(static_cast<int>(lineCount))
             + " : ";
 
-        auto c = static_cast<size_t>(inputStream.gcount());
+        auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
             throw std::invalid_argument(
@@ -1710,7 +1721,8 @@ auto day13Part2()
 int main()
 {
     try {
-        day13Part2();
+        day13Part2(Input, false);
+        // day13Part2("./13_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cout << std::endl; // in order to flash
         std::cerr << "Bad input: " << ex.what() << std::endl;

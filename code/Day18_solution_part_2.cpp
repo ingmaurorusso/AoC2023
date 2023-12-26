@@ -1,11 +1,13 @@
 #include <array>
 #include <exception>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <set>
 #include <sstream>
@@ -761,10 +763,19 @@ constexpr bool UseRgb = true; // false to switch to first part.
 
 } // namespace
 
-auto day18Part2()
+auto day18Part2(std::string_view streamSource, bool sourceIsFilePath)
 {
-    std::stringstream inputStream{};
-    inputStream << Input;
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
 
     using Quantity = Coord; // should be Coord^2
 
@@ -934,12 +945,12 @@ auto day18Part2()
     unsigned lineCount{0U};
     constexpr auto MaxLineLength = 1000;
     std::array<char, MaxLineLength + 1> cc{};
-    while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
+    while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
         std::string errorLine = "Input error at the line n. "
             + std::to_string(static_cast<int>(lineCount)) + " : ";
 
-        auto c = static_cast<size_t>(inputStream.gcount());
+        auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
             throw std::invalid_argument(
@@ -1116,15 +1127,15 @@ auto day18Part2()
         }
 
         auto it = mapTraits.upper_bound(currPos.x);
-        if (it == mapTraits.begin()) {
+        /*if (it == mapTraits.begin()) {
             throw std::runtime_error("not found trait");
-        } // else:
+        } // else:*/
 
         --it;
         TraitDir& traitDir = it->second;
-        if ((it->first != currPos.x) && (traitDir.lastPos != currPos.x)) {
+        /*if ((it->first != currPos.x) && (traitDir.lastPos != currPos.x)) {
             throw std::runtime_error("unexisting basic trait");
-        }
+        }*/
 
         if (oldDir == Dir::Left) {
             traitDir.firstChar = getTurn(oldDir, dir, lineCount == 1U);
@@ -1149,18 +1160,18 @@ auto day18Part2()
         cubes += digLen;
         switch (dir) {
         case Dir::Right: {
-            if (traitDir.lastPos != currPos.x) {
+            /*if (traitDir.lastPos != currPos.x) {
                 throw std::runtime_error("generalize for back and forth");
-            }
+            }*/
             traitDir.lastPos = newP.x;
             // traitDir.lastChar = wait next move to set it.
 
             const auto it2 = std::next(it);
             if (it2 != mapTraits.end()) {
                 if (it2->first <= newP.x) {
-                    if (newP != startP) {
+                    /*if (newP != startP) {
                         throw std::runtime_error("overlap: generalize for crosses");
-                    } // else:
+                    } // else:*/
 
                     traitDir.lastPos = it2->second.lastPos;
                     // for the case of two consecutive right.
@@ -1199,16 +1210,16 @@ auto day18Part2()
 
                     auto [itV, ok] = lineDirV.insert(addPair);
 
-                    if (!ok) {
+                    /*if (!ok) {
                         if (newP != startP) {
                             throw std::runtime_error("generalize for cross");
                         }
-                    } else if (itV != lineDirV.begin()) {
+                    } else*/ if (ok && (itV != lineDirV.begin())) {
                         const auto it2 = std::prev(itV);
                         if (it2->second.lastPos >= newP.x) {
-                            if (newP != startP) {
+                            /*if (newP != startP) {
                                 throw std::runtime_error("overlap: generalize for crosses");
-                            } // else:
+                            } // else:*/
                             lineDirV.erase(itV);
                         }
                     }
@@ -1216,26 +1227,26 @@ auto day18Part2()
             }
         } break;
         case Dir::Left: {
-            if (it->first != currPos.x) {
+            /*if (it->first != currPos.x) {
                 throw std::runtime_error("generalize for back and forth");
-            }
+            }*/
 
             auto traitDirCopy = traitDir;
             // traitDirCopy.firstChar = wait next move to set it.
             mapTraits.erase(it);
 
-            const auto [itNew, ok] = mapTraits.insert(std::make_pair(newP.x, traitDirCopy));
+            const auto [itNew, _/*ok*/] = mapTraits.insert(std::make_pair(newP.x, traitDirCopy));
 
-            if (!ok) {
+            /*if (!ok) {
                 throw std::runtime_error("overlap: generalize for crosses");
-            }
+            }*/
 
             if (itNew != mapTraits.begin()) {
                 const auto it2 = std::prev(itNew);
                 if (it2->second.lastPos >= newP.x) {
-                    if (newP != startP) {
+                    /*if (newP != startP) {
                         throw std::runtime_error("overlap: generalize for crosses");
-                    } // else:
+                    } // else:*/
 
                     it2->second.lastPos = itNew->second.lastPos;
                     // for the case of two consecutive left.
@@ -1278,15 +1289,15 @@ auto day18Part2()
                         auto [itV, ok] = lineDirV.insert(addPair);
 
                         if (!ok) {
-                            if (newP != startP) {
+                            /*if (newP != startP) {
                                 throw std::runtime_error("generalize for cross");
-                            }
+                            }*/
                         } else if (itV != lineDirV.begin()) {
                             const auto it2 = std::prev(itV);
                             if (it2->second.lastPos >= newP.x) {
-                                if (newP != startP) {
+                                /*if (newP != startP) {
                                     throw std::runtime_error("overlap: generalize for crosses");
-                                } // else:
+                                } // else:*/
                                 lineDirV.erase(itV);
                             }
                         }
@@ -1505,7 +1516,8 @@ auto day18Part2()
 int main()
 {
     try {
-        day18Part2();
+        day18Part2(Input, false);
+        // day18Part2("./18_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cout << std::endl; // in order to flash
         std::cerr << "Bad input: " << ex.what() << std::endl;

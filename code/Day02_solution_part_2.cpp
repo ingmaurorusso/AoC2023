@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -160,9 +162,19 @@ bool toUnsigned(const std::string& s, unsigned long& res) {
 
 } // namespace
 
-auto day02Part2(){
-    std::stringstream inputStream{};
-    inputStream << Input;
+auto day02Part2(std::string_view streamSource, bool sourceIsFilePath)
+{
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
 
     unsigned long sum{0U};
     unsigned nTotalColors{0U};
@@ -174,12 +186,12 @@ auto day02Part2(){
 
     constexpr auto MaxLineLength = 1000;
     std::array<char, MaxLineLength + 1> cc{};
-    while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
+    while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
         std::string errorLine
             = "Input error at the line n. " + std::to_string(lineCount) + " : ";
 
-        auto c = static_cast<size_t>(inputStream.gcount());
+        auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
             throw std::invalid_argument(
@@ -329,7 +341,8 @@ auto day02Part2(){
 
 int main(){
     try {
-        day02Part2();
+        day02Part2(Input, false);
+        // day02Part2("./02_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cerr << "Bad input: " << ex.what() << std::endl;
         return 1;

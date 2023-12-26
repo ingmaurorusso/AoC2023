@@ -1,12 +1,14 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <set>
 #include <sstream>
@@ -226,10 +228,19 @@ std::string dirToStr(Direction d)
 
 } // namespace
 
-auto day21Part1()
+auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
-    std::stringstream inputStream{};
-    inputStream << Input;
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
 
     std::vector<std::string> lines;
     Coord rowsLength{};
@@ -246,12 +257,12 @@ auto day21Part1()
     unsigned lineCount{0U};
     constexpr auto MaxLineLength = 1000;
     std::array<char, MaxLineLength + 1> cc{};
-    while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
+    while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
         std::string errorLine = "Input error at the line n. "
             + std::to_string(static_cast<int>(lineCount)) + " : ";
 
-        auto c = static_cast<size_t>(inputStream.gcount());
+        auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
             throw std::invalid_argument(
@@ -430,7 +441,8 @@ auto day21Part1()
 int main()
 {
     try {
-        day21Part1();
+        day21Part1(Input, false);
+        // day21Part1("./21_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cout << std::endl; // in order to flash
         std::cerr << "Bad input: " << ex.what() << std::endl;
@@ -458,7 +470,7 @@ N. field rows 11
 N. field cols 11
 Rock count 40
 Total tiles passed on or reached 81
-Result: tiles reachable exactly 42
+Result: 42
 
 real input:
 Lines count 131
@@ -466,5 +478,5 @@ N. field rows 131
 N. field cols 131
 Rock count 1544
 Total tiles passed on or reached 7533
-Result: tiles reachable exactly 3853
+Result: 3853
 */

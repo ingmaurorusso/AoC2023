@@ -1,6 +1,8 @@
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <sstream>
 #include <string>
@@ -21,10 +23,19 @@ false ?
 
 } // namespace
         
-auto day15Part1()
+auto day15Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
-    std::stringstream inputStream{};
-    inputStream << Input;
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
 
     std::string errorLine;
 
@@ -65,7 +76,7 @@ auto day15Part1()
     std::string singleSeq{};
 
     char ch{};
-    while (inputStream >> ch) {
+    while ((*inputStream) >> ch) {
         switch (ch) {
         case '\n':
             ++lineCount;
@@ -102,7 +113,8 @@ auto day15Part1()
 int main()
 {
     try {
-        day15Part1();
+        day15Part1(Input, false);
+        // day15Part1("./15_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cout << std::endl; // in order to flash
         std::cerr << "Bad input: " << ex.what() << std::endl;

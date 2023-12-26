@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -1033,8 +1035,20 @@ enum class Direction {Front, Back};
 
 } // namespace
 
-auto day01Part2()
+auto day01Part2(std::string_view streamSource, bool sourceIsFilePath)
 {
+    std::shared_ptr<std::istream> inputStream;
+
+    if (sourceIsFilePath) {
+        inputStream = std::static_pointer_cast<std::istream>(
+            std::make_shared<std::ifstream>(std::string(streamSource)));
+    } else {
+        auto sstream = std::make_shared<std::stringstream>();
+        (*sstream) << streamSource;
+        // use std::move(sstream) in C++20 or more.
+        inputStream = std::static_pointer_cast<std::istream>(sstream);
+    }
+
     static const auto iNine = static_cast<size_t>(
         std::find(StrNumbers.begin(), StrNumbers.end(), "nine") - StrNumbers.begin());
 
@@ -1085,9 +1099,6 @@ auto day01Part2()
         return std::make_pair(static_cast<size_t>(0U), inputItEnd); // none found
     };
 
-    std::stringstream inputStream;
-    inputStream << Input;
-
     unsigned long sum{0U};
     std::string line;
     unsigned lineCount{0U};
@@ -1098,7 +1109,7 @@ auto day01Part2()
     unsigned lineCountLastChars{0U};
     unsigned lineCountBothChars{0U};
 
-    while (inputStream >> line) { // suppose no space in each line
+    while ((*inputStream) >> line) { // suppose no space in each line
         ++lineCount;
         std::string errorLine
             = "Input error at the line n. " + std::to_string(lineCount) + " : ";
@@ -1153,7 +1164,8 @@ auto day01Part2()
 int main()
 {
     try {
-        day01Part2();
+        day01Part2(Input, false);
+        // day01Part2("./01_input_file.txt",true);
     } catch (std::invalid_argument& ex) {
         std::cerr << "Bad input: " << ex.what() << std::endl;
         return 1;
