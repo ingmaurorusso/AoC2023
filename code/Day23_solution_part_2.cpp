@@ -228,7 +228,7 @@ constexpr auto toUnderlying(const E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-std::string dirToStr(Direction d)
+/*std::string dirToStr(Direction d)
 {
     using std::literals::string_literals::operator""s;
     switch (d) {
@@ -244,12 +244,12 @@ std::string dirToStr(Direction d)
         throw std::runtime_error(
             "Inconsistent direction to print: "s + std::to_string(toUnderlying(d)));
     }
-}
+}*/
 
 } // namespace
 
-//when runPart1 is true, arrows are not changed into paths '.'
-auto day23Part2(bool runPart1)
+// when runPart1 is true, arrows are not changed into paths '.'
+auto day23Part2(bool runPart1 = false)
 {
     std::stringstream inputStream{};
     inputStream << Input;
@@ -272,14 +272,13 @@ auto day23Part2(bool runPart1)
     std::array<char, MaxLineLength + 1> cc{};
     while (inputStream.getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
-        std::string errorLine = "Input error at the line n. "
-            + std::to_string(static_cast<int>(lineCount)) + " : ";
+        std::string errorLine
+            = "Input error at the line n. " + std::to_string(static_cast<int>(lineCount)) + " : ";
 
         auto c = static_cast<size_t>(inputStream.gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
-            throw std::invalid_argument(
-                errorLine + "longer than " + std::to_string(MaxLineLength));
+            throw std::invalid_argument(errorLine + "longer than " + std::to_string(MaxLineLength));
         }
 
         std::string line;
@@ -338,7 +337,7 @@ auto day23Part2(bool runPart1)
         }
         ++arrowCount; // restore
 
-        if (!runPart1){
+        if (!runPart1) {
             std::transform(line.cbegin(), line.cend(), line.begin(), [](char ch) {
                 if (ch != '#') {
                     ch = '.';
@@ -357,11 +356,11 @@ auto day23Part2(bool runPart1)
     const auto& cLines = lines;
 
     const auto movePoint = [&lines = cLines](
-                                Point& p,
-                                Dir d,
-                                Coord stepMoreThan1 = 0U,
-                                bool acceptBeyond = false,
-                                bool toroidal = false) {
+                               Point& p,
+                               Dir d,
+                               Coord stepMoreThan1 = 0U,
+                               bool acceptBeyond = false,
+                               bool toroidal = false) {
         static const Coord nRows = lines.size();
         static const Coord nCols = lines[0].size();
 
@@ -434,6 +433,19 @@ auto day23Part2(bool runPart1)
         }
     };
 
+    static const auto getArrowDir = [](const char ch) {
+        switch (ch) {
+        case '>':
+            return Dir::Right;
+        case '<':
+            return Dir::Left;
+        case '^':
+            return Dir::Up;
+        default:
+            return Dir::Down; //'v'
+        }
+    };
+
     const auto nRows = lines.size();
     const auto nCols = lines[0].size();
 
@@ -449,13 +461,11 @@ auto day23Part2(bool runPart1)
     }
 
     // preliminary search points with more than two near points.
-    PosCount nPaths = 0U;
     std::set<Point> allKnownKnotPoints; // unordered
     for (Coord x = 0; x < nCols; ++x) {
         Point p{x, 0U};
         for (; p.y < nRows; ++p.y) {
             if (lines[p.y][p.x] != '#') {
-                ++nPaths;
                 unsigned count = 0U;
                 Dir dir = Direction::Up;
                 for (auto d = 0U; d < FourDir; ++d) {
@@ -497,6 +507,15 @@ auto day23Part2(bool runPart1)
             for (const auto& pointAndDir : nextPoints) {
                 Point p = pointAndDir.first;
                 Dir dir = pointAndDir.second;
+                // from the same as before, in order to simply avoid the case d==2
+
+                const auto ch = lines[p.y][p.x];
+                bool oneDirOnly = false;
+                if (ch != '.') {
+                    // to support part 1 when runPart1==true
+                    dir = getArrowDir(ch);
+                    oneDirOnly = true;
+                }
 
                 for (auto d = 0U; d < FourDir; ++d) {
                     Point pNear = p;
@@ -508,6 +527,10 @@ auto day23Part2(bool runPart1)
                         } else {
                             newPoints.emplace(pNear, dir);
                         }
+                    }
+
+                    if (oneDirOnly) {
+                        break;
                     }
 
                     rotateDir(dir);
@@ -525,6 +548,7 @@ auto day23Part2(bool runPart1)
 
     std::vector<Point> knotPoints{startP}; // set but not really read, except size.
     std::map<Point, PointIdx> knotPointsIdx{{startP, 0U}};
+    const auto startIdx = 0U;
 
     for (const auto point : allKnownKnotPoints) {
         // if ((point != startP) && (point != goalP))
@@ -537,19 +561,24 @@ auto day23Part2(bool runPart1)
     knotPointsIdx.emplace(goalP, knotPoints.size());
     knotPoints.push_back(goalP);
 
-    std::map<size_t, std::map<size_t, PosCount>> distancesIdx;
-    for (const auto& [point, distFromP] : distances) {
-        const auto it
-            = distancesIdx.emplace(knotPointsIdx[point], std::map<PointIdx, PosCount>()).first;
-        auto& distFromPIdx = it->second;
-        for (const auto [pOther, dist] : distFromP) {
-            distFromPIdx.emplace(knotPointsIdx[pOther], dist);
-        }
-    }
-
     // reinsert.
     allKnownKnotPoints.insert(startP);
     allKnownKnotPoints.insert(goalP);
+
+    using MapDistancesFromPoint = std::map<size_t, PosCount>;
+    using Distances = std::vector<MapDistancesFromPoint>;
+    Distances distancesIdx(allKnownKnotPoints.size(), MapDistancesFromPoint());
+    Distances distancesBackIdx(allKnownKnotPoints.size(), MapDistancesFromPoint());
+    for (const auto& [point, distFromP] : distances) {
+        const auto pointIdx = knotPointsIdx[point];
+        auto& distFromPIdx = distancesIdx[pointIdx];
+        for (const auto [pOther, dist] : distFromP) {
+            const auto pOtherIdx = knotPointsIdx[pOther];
+            distFromPIdx.emplace(pOtherIdx, dist);
+            distancesBackIdx[pOtherIdx][pointIdx] = dist;
+        }
+    }
+
 
     const auto goalIdx = knotPointsIdx[goalP]; // 0U
 
@@ -572,8 +601,11 @@ auto day23Part2(bool runPart1)
     static std::function<bool(const PointAndPath&, const PointAndPath&)> ppBySmallerSet
         = ppBySmallerSetL;
 
-    std::map<PointAndPath, PosCount> maxPathFromPP;
-    std::map<PointIdx, PosCount> maxPathFrom;
+    std::map<PointAndPath, std::pair<PosCount, PointIdx>> maxPathFromPP;
+    // for each couple point-path, the best couple distance/successive (best by minor distance).
+
+    std::map<PointIdx, std::pair<PosCount, Path>> maxPathFrom;
+    // for each point, the minor distance and corresponding path.
 
 
     std::set<PointAndPath, decltype(ppBySmallerSet)> nextPPback(ppBySmallerSet);
@@ -611,8 +643,11 @@ auto day23Part2(bool runPart1)
 
             sourcePathToGoal.erase(pointIdx);
             PosCount maxDist = 0U;
+
+            PointIdx succIdx{};
+
             for (const auto [pNearIdx, dist] : distancesIdx[pointIdx]) {
-                if (sourcePathToGoal.count(pNearIdx) > 0U) {
+                if ((pNearIdx != startIdx) && sourcePathToGoal.count(pNearIdx) > 0U) {
                     const auto itPP
                         = maxPathFromPP.find(std::make_pair(pNearIdx, sourcePathToGoal));
                     if (itPP != maxPathFromPP.end()) {
@@ -621,12 +656,17 @@ auto day23Part2(bool runPart1)
                         // nearP), For sure its max distance has been computed, due to the
                         // procedure to advance by increasing-size sets.
 
-                        PosCount newDist = dist + itPP->second;
+                        PosCount newDist = dist + itPP->second.first;
                         if (newDist > maxDist) {
                             maxDist = newDist;
+                            succIdx = pNearIdx;
                         }
                     }
-                } else {
+                }
+            }
+            // Two separated cycles, in order to support the case runPart1.
+            for (const auto [pNearIdx, dist] : distancesBackIdx[pointIdx]) {
+                if (sourcePathToGoal.count(pNearIdx) == 0U) {
                     auto sourcePathToGoalCopy = sourcePathToGoal;
                     sourcePathToGoalCopy.insert(pointIdx);
                     sourcePathToGoalCopy.insert(pNearIdx);
@@ -635,20 +675,23 @@ auto day23Part2(bool runPart1)
             }
 
             sourcePathToGoal.insert(pointIdx); // restore
-            maxPathFromPP.emplace(PointAndPath{pointIdx, std::move(sourcePathToGoal)}, maxDist);
 
-            const auto [it, newP] = maxPathFrom.emplace(pointIdx, maxDist);
-            if (!newP) {
-                if (maxDist > it->second) {
-                    it->second = maxDist;
-                }
+            auto& distandPathForPoint = maxPathFrom[pointIdx];
+            auto& maxPath = distandPathForPoint.first;
+            if (maxDist > maxPath) {
+                maxPath = maxDist;
+                distandPathForPoint.second = sourcePathToGoal;
             }
+
+            maxPathFromPP.emplace(
+                PointAndPath{pointIdx, std::move(sourcePathToGoal)},
+                std::make_pair(maxDist, succIdx));
         }
 
         nextPPback = std::move(newPPback);
     }
 
-    PosCount res = maxPathFrom[knotPointsIdx[startP]];
+    PosCount res = maxPathFrom[knotPointsIdx[startP]].first;
     if (res == 0U) {
         std::cout << "No good path from start to goal!\n";
     }
@@ -658,13 +701,26 @@ auto day23Part2(bool runPart1)
     std::cout << "Arrow count " << arrowCount << std::endl;
     std::cout << "Number of knot tiles: " << allKnownKnotPoints.size() << std::endl;
     std::cout << "Number of connections: " << (connections / 2U) << std::endl;
-    std::cout << "Number of cycles: " << cycleNumber << std::endl;
+    std::cout << "Number of computing cycles: " << cycleNumber << std::endl;
     std::cout << "Number of points and paths: " << ppNumber << std::endl;
-    std::cout << "Result: " << res << std::endl;
+    std::cout << std::endl;
+    PointIdx scrollIdx = startIdx;
+    auto residualSetIdx = maxPathFrom[startIdx].second;
+    std::cout << "Node sequence (" << residualSetIdx.size() << " points): ";
+    do {
+        const auto [_, nextIdx] = maxPathFromPP[std::make_pair(scrollIdx, residualSetIdx)];
+        residualSetIdx.erase(scrollIdx);
+        std::cout << pointToStr(knotPoints[scrollIdx]) << " -[" << distancesIdx[scrollIdx][nextIdx]
+                  << "]> ";
+        residualSetIdx.erase(scrollIdx);
+        scrollIdx = nextIdx;
+    } while (scrollIdx != goalIdx);
+    std::cout << pointToStr(goalP) << '\n';
+    std::cout << "\nResult: " << res << std::endl;
     return res;
 }
 
-int func()
+int main()
 {
     try {
         day23Part2(false);
@@ -697,6 +753,7 @@ Number of knot tiles: 9
 Number of connections: 12
 Number of cycles: 9
 Number of points and paths: 65
+Node sequence (9 points): (1, 0) -[15]> (3, 5) -[22]> (5, 13) -[38]> (13, 19) -[10]> (13, 13) -[24]> (11, 3) -[30]> (21, 11) -[10]> (19, 19) -[5]> (21, 22)
 Result: 154
 
 Real input:
@@ -707,5 +764,6 @@ Arrow count 118
 Number of connections: 60
 Number of cycles: 36
 Number of points and paths: 11581284
+Node sequence (35 points): (1, 0) -[147]> (5, 19) -[216]> (37, 19) -[226]> (55, 11) -[178]> (57, 43) -[152]> (81, 39) -[250]> (85, 5) -[196]> (109, 13) -[396]> (125, 37) -[288]> (135, 67) -[298]> (103, 53) -[94]> (101, 85) -[190]> (137, 79) -[236]> (135, 109) -[126]> (105, 105) -[174]> (75, 101) -[126]> (57, 109) -[116]> (55, 83) -[184]> (87, 87) -[90]> (85, 67) -[204]> (59, 57) -[86]> (43, 67) -[308]> (33, 29) -[64]> (19, 35) -[296]> (15, 67) -[126]> (9, 83) -[156]> (37, 75) -[218]> (37, 109) -[238]> (5, 103) -[472]> (37, 131) -[256]> (67, 129) -[92]> (79, 125) -[238]> (107, 127) -[186]> (131, 137) -[31]> (139, 140)
 Result: 6654
 */

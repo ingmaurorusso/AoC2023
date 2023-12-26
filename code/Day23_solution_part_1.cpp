@@ -526,7 +526,7 @@ auto day23Part1()
     if (cyclesExist) {
         // need a general algorithm
         throw std::runtime_error(
-            "cycles exist: run algorithm of part 2 with parameter removeArrow=false");
+            "cycles exist: run algorithm of part 2 with parameter runPart1=true");
     }
 
     PosCount res = maxPathFrom[startP];
