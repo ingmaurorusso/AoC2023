@@ -195,11 +195,11 @@ bool operator!=(const Point& p1, const Point& p2)
 {
     return !(p1 == p2);
 }
-std::string pointToStr(Point p)
+/*std::string pointToStr(Point p)
 {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ')';
-}
+}*/
 
 enum class Direction : unsigned { Right, Down, Left, Up };
 
@@ -211,7 +211,7 @@ constexpr auto toUnderlying(const E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-std::string dirToStr(Direction d)
+/*std::string dirToStr(Direction d)
 {
     using std::literals::string_literals::operator""s;
     switch (d) {
@@ -227,7 +227,7 @@ std::string dirToStr(Direction d)
         throw std::runtime_error(
             "Inconsistent direction to print: "s + std::to_string(toUnderlying(d)));
     }
-}
+}*/
 
 } // namespace
 
@@ -415,7 +415,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
         }
     };
 
-    const auto printPoints = [&cLines, &startP](const auto& prPoints) {
+    /*const auto printPoints = [&cLines, &startP](const auto& prPoints) {
         auto linesCopy = cLines;
         linesCopy[static_cast<size_t>(startP.y)][static_cast<size_t>(startP.x)] = '.';
 
@@ -427,7 +427,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             std::cout << line << '\n';
         }
         std::cout << '\n';
-    };
+    };*/
 
     constexpr CycleCount NumSteps = 26501365U;
 
@@ -487,6 +487,9 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
         = compWhenConfigsL;
 
     using TimesToConfig = std::vector<WhenConfigs::iterator>;
+    using TimesToConfigLst = std::list<std::pair<WhenConfigs::iterator, CycleCount>>;
+    // pair: configuration and how many cycles elapsed from the first element (for the
+    // element [0] the CycleCount value is the full period).
     using ExitHistory = std::map<CycleCount, std::set<Entry>>; // need ordered.
 
     // for each entry point, compute configs until cycle.
@@ -574,7 +577,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
         CycleCount currentCycle = 0U;
 
-        timesConfigs.push_back(whenConfigs.emplace(points, 0U).first);
+        timesConfigs.emplace_back(whenConfigs.emplace(points, 0U).first);
 
         bool cycleFound = false;
 
@@ -641,9 +644,8 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                                             // than currentCycle-when and the same
                                             // oddness...]
                                             bool noRocks = true;
-                                            std::reference_wrapper<const std::set<Coord>>
-                                                cRockSetRef
-                                                = std::ref(cRocksBorder[toUnderlying(dir)]);
+                                            auto cRockSetRef
+                                                = std::cref(cRocksBorder[toUnderlying(dir)]);
 
                                             const auto itRock = cRockSetRef.get().lower_bound(c0);
                                             if ((itRock != cRockSetRef.get().end())
@@ -678,13 +680,17 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             points = newPoints;
             // printPoints(points);
 
-            auto [it, ok] = whenConfigs.emplace(points, currentCycle); //(_6_)a
+            auto [itWC, ok] = whenConfigs.emplace(points, currentCycle); //(_6_)a
             if (ok) {
-                timesConfigs.push_back(it); // in position with index currentCycle.
+                timesConfigs.emplace_back(itWC);
+                // cumulated value of currentCycle.
             } else {
                 cycleFound = true;
                 // cycleStart = it->second;
-                cycleStartByEntry[entry] = it->second; //(_6_)
+                cycleStartByEntry[entry] = itWC->second; //(_6_)b
+
+                // Differently from (_7_), here all tiems are saved, and also whatever
+                // before the period is kept, as useful in (_8_).
             }
         }
     };
@@ -753,9 +759,9 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::unordered_set<SuperPoint, decltype(hashPoint)> unstableParts(0U, hashPoint);
     using StableResume = std::map< // TODO: unordered
         WhenConfigs, // in the stable resume only the config matters, not the cycle.
-                     // The cyclecoutn only matters in (_6_) [recorded in (_6_)a
+                     // The cyclecount only matters in (_6_) [recorded in (_6_)a
                      // and reused in (_6_)b]
-        std::tuple<TimesToConfig, std::unordered_map<CycleCount, PosCount>>,
+        std::tuple<TimesToConfigLst, std::unordered_map<CycleCount, PosCount>>,
         decltype(compWhenConfigs)>;
     std::unordered_map<SuperPoint, StableResume::iterator, decltype(hashPoint)> stableParts(
         0U, hashPoint);
@@ -774,7 +780,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     // data structure for unstable ones.
     std::unordered_map<SuperPoint, WhenConfigs, decltype(hashPoint)> configsHistInUnstableParts(
         0U, hashPoint);
-    std::unordered_map<SuperPoint, TimesToConfig, decltype(hashPoint)>
+    std::unordered_map<SuperPoint, TimesToConfigLst, decltype(hashPoint)>
         timesConfigsHistInUnstableParts(0U, hashPoint);
 
     using EntriesToPropagate = std::map<SuperPoint, std::set<Entry>>;
@@ -820,6 +826,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                   auto index = (elapsedTime > cycleStart)
                       ? cycleStart + ((elapsedTime - cycleStart) % period)
                       : elapsedTime;
+                  //(_8_)
                   auto addPoints = times[index]->first; // a copy
                   newPoints.merge(addPoints);
 
@@ -855,8 +862,31 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
               }
           };
 
+    static const auto getPeriodStep = [](const TimesToConfigLst& timesLstToConfig,
+                                         CycleCount modCycleCount) {
+        const auto itTimes = (modCycleCount == 0) ? timesLstToConfig.cbegin()
+                                                  : std::find_if(
+                                                      std::next(timesLstToConfig.cbegin()),
+                                                      timesLstToConfig.cend(),
+                                                      [modCycleCount](const auto& itAndCumul) {
+                                                          return itAndCumul.second >= modCycleCount;
+                                                      });
+
+        return std::make_pair(itTimes, (modCycleCount == 0) || (itTimes->second == modCycleCount));
+    };
+
     const auto computeNumPoints =
-        [&](/*PointSet& debugPoints,std::map<SuperPoint,PointSet>& stableOut*/) {
+        [&pointsInParts,
+         &fullParts,
+         &activeParts,
+         &unstableParts,
+         &stableParts,
+         &stablePartsModPer,
+         &stableResume,
+         nonRocksInBasicField,
+         &currentCycle,
+         &updateForPart](
+            /*PointSet& debugPoints,std::map<SuperPoint,PointSet>& stableOut*/) {
             /*
             debugPoints.clear();
             stableOut.clear();
@@ -898,21 +928,26 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             for (auto itResume = stableResume.begin(); itResume != stableResume.end(); ++itResume) {
                 const auto& [whenConfigs, resumeTuple] = *itResume;
 
-                const TimesToConfig& timesToConfig = std::get<0>(resumeTuple);
+                const TimesToConfigLst& timesLstToConfig = std::get<0>(resumeTuple);
                 const std::unordered_map<CycleCount, PosCount>& whenAndHowMany
                     = std::get<1>(resumeTuple);
 
-                CycleCount period = timesToConfig.size();
+                CycleCount period = timesLstToConfig.front().second;
 
                 for (const auto [modWhenZero, howMany] : whenAndHowMany) {
                     CycleCount modCycleCount = (modWhenZero + currentCycle) % period;
 
-                    const PointSet& pointsStable = timesToConfig[modCycleCount]->first;
-                    PosCount partial = pointsStable.size();
-                    if (partial == 0U) {
-                        // just the dummy element of whenConfigs. Need to recompute specifically
-                        // because of jumped iterations -> see (_5_)). Need to find some of the
-                        // stableParts corresponding to the current element of stableResume.
+                    const auto [itTimes, exactStep]
+                        = getPeriodStep(timesLstToConfig, modCycleCount);
+
+                    PosCount partial{};
+                    if (exactStep) {
+                        // const PointSet& pointsStable = itTimes->first->first;
+                        partial = itTimes->first->first.size();
+                    } else {
+                        //(_9_)
+                        // Because of jumped iterations, in (_5_) there was no specific iteration
+                        // for the wanted element.
                         bool found = false;
                         for (const auto& [partCoords, itResumeFromStable] : stableParts) {
                             if ((itResumeFromStable == itResume)
@@ -922,6 +957,13 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                                 const PointSet& pointsStable2
                                     = pointsInParts.find(partCoords)->second;
                                 partial = pointsStable2.size();
+
+                                // (_10_)
+                                // The list timesLstToConfig might be properly enriched, in order
+                                // not to repeat the need to pass here again. Nonetheless, actually,
+                                // this would mean to change the key in stableResume, as
+                                // pointsStable2 should be added. TODO: implement.
+
                                 found = true;
 
                                 /*
@@ -982,6 +1024,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     bool superConfirmation = false;
     CycleCount lastPeriodBetweenNewMaxMan = NumSteps;
+    CycleCount multipleOfLastPeriod = 1U;
     CycleCount lastCycleNewMaxMan = 0U;
 
     const auto inferNumPointsLD
@@ -1095,11 +1138,8 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
             unstableParts.insert(partCoords);
 
-            // preliminary add an empty point-set, as dummy element for when iterations are
-            // jumped.
-            configsHistInUnstableParts.emplace(partCoords, WhenConfigs(compPointSet))
-                .first->second.emplace(PointSet(0U, hashPoint), 0U);
-            timesConfigsHistInUnstableParts.emplace(partCoords, TimesToConfig());
+            configsHistInUnstableParts.emplace(partCoords, WhenConfigs(compPointSet));
+            timesConfigsHistInUnstableParts.emplace(partCoords, TimesToConfigLst());
         }
 
         // next time has been chosen.
@@ -1251,68 +1291,124 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
         for (const auto partCoords : unstableParts) {
             // check periodicity for partCoords.
             WhenConfigs& whenConfigs = configsHistInUnstableParts.find(partCoords)->second;
-            TimesToConfig& timesConfigs = timesConfigsHistInUnstableParts.find(partCoords)->second;
+            TimesToConfigLst& timesConfigsLst
+                = timesConfigsHistInUnstableParts.find(partCoords)->second;
 
             const auto itP = pointsInParts.find(partCoords);
 
             const auto [itWC, isNewC] = whenConfigs.emplace(itP->second, 0U);
             // here 0U is used, not currentCycle, so that the whenConfigs may match in
             // stableResume. Indeed, the real cycle number does not matter, but the record in
-            // timesConfigs that are implicitly associated to the last steps until currentCycle.
-
-
-            if (!timesConfigs.empty()) {
-                // preliminary insert dummy elements for the jumped iterations:
-                CycleCount jumpedIter = currentCycle - oldCurrentCycle;
-                if (jumpedIter > 1U) {
-                    //(_5_)
-                    timesConfigs.resize(
-                        timesConfigs.size() + jumpedIter - 1U,
-                        whenConfigs.find(
-                            PointSet(0U, hashPoint))); // to the dummy element with the empty set.
-                }
-            }
+            // timesConfigsLst that are implicitly associated to the last steps until currentCycle.
 
             if (isNewC) {
-                timesConfigs.push_back(itWC);
+                //(_5_)
+                timesConfigsLst.emplace_back(itWC, currentCycle - oldCurrentCycle);
+                if (timesConfigsLst.size() > 1U) {
+                    timesConfigsLst.back().second += (std::next(timesConfigsLst.rbegin())->second);
+                    // the CycleCount value must be a cumulation.
+                } else {
+                    timesConfigsLst.front().second = 0U;
+                    // it will be set as the period, but now it must be zero to support
+                    // cumulation for the element [1].
+                }
             } else {
                 // period found; stop, remove from unstable, but keep
                 // in configsHistInUnstableParts and timesConfigsHistInUnstableParts.
+                CycleCount period
+                    = timesConfigsLst.back().second + (currentCycle - oldCurrentCycle);
 
-                // The period may have begun not for timesConfigs[0].
-                CycleCount realPeriodRefStart = 0U;
-                while (realPeriodRefStart < timesConfigs.size()) {
-                    if (timesConfigs[realPeriodRefStart] == itWC) {
+                // The period may have begun not for timesConfigsLst.frnot().
+                auto itRealPeriodStartRef = timesConfigsLst.begin();
+                CycleCount cumulatedToRemove{};
+                while (itRealPeriodStartRef != timesConfigsLst.end()) {
+                    //(_7_)
+                    if (itRealPeriodStartRef->first == itWC) {
                         break;
                     }
-                    ++realPeriodRefStart;
+                    whenConfigs.erase(itRealPeriodStartRef->first);
+                    ++itRealPeriodStartRef;
                 }
+                cumulatedToRemove = itRealPeriodStartRef->second;
 
-                if (realPeriodRefStart > 0U) {
+                if (cumulatedToRemove > 0U) {
+                    period -= cumulatedToRemove;
+
                     // shift back the proper elements and then reduce size.
-                    CycleCount source = realPeriodRefStart;
-                    CycleCount dest = 0U;
-                    while (source < timesConfigs.size()) {
-                        auto& itRef = timesConfigs[dest++];
-                        if ((dest - 1U < realPeriodRefStart) && !itRef->first.empty()) {
-                            whenConfigs.erase(itRef);
-                        }
-                        itRef = timesConfigs[source++];
+                    auto itSource = itRealPeriodStartRef;
+                    auto itDest = timesConfigsLst.begin();
+                    while (itSource != timesConfigsLst.end()) {
+                        auto& [itRef, countRef] = *(itDest++);
+                        const auto [it, count] = *(itSource++);
+                        itRef = it;
+                        countRef = count - cumulatedToRemove;
                     }
-                    while (dest < realPeriodRefStart) {
-                        // for the case when realPeriodRefStart > size()/2.
-                        const auto it = timesConfigs[dest++];
-                        if (!it->first.empty()) { // avoid the dummy element.
-                            whenConfigs.erase(it);
-                        }
+                    while (itDest != timesConfigsLst.end()) {
+                        itDest = timesConfigsLst.erase(itDest);
                     }
-                    timesConfigs.resize(timesConfigs.size() - realPeriodRefStart);
                 }
 
-                if (timesConfigs.empty()) {
-                    // It means not found in timesConfigs and realPeriodRefStart
-                    // was equal to timesConfigs.size().
+                timesConfigsLst.front().second = period;
+
+                if (timesConfigsLst.empty()) {
+                    // It means not found in timesConfigsLst and itRealPeriodStartRef
+                    // was equal to timesConfigsLst.end().
                     throw std::runtime_error("incosistent timesConfigs");
+                }
+
+                if (period > 2U) {
+                    // The overall source code is quite generally, but for the problem the number of
+                    // repeating configuration should just be two (or one), therefore here the
+                    // second is searched, so avoiding the need to use (_9_) [taking also into
+                    // account (_10_)].
+
+                    EntriesToPropagate dummyEntriesToPropagate;
+                    ++currentCycle;
+                    updateForPart(partCoords, dummyEntriesToPropagate);
+                    // it simulates to have this set one cycle ago. In case this should be false
+                    // (i.e., it only starts from next cycle), this is not a problem, because
+                    // timesConfigsLst is not used to get tiles counting for old values of cycle
+                    // counter.
+                    --currentCycle;
+                    PointSet previousSet1 = pointsInParts.find(partCoords)->second;
+                    // previousSet1 copied, otherwise it would overlap with previousSet2.
+                    bool okFix = false;
+                    if (previousSet1 == timesConfigsLst.front().first->first) {
+                        // easier to completely clear. The goal is to share code.
+                        timesConfigsLst.clear();
+                        whenConfigs.clear();
+                        okFix = true;
+                        period = 1U;
+                    } else {
+                        currentCycle += 2U;
+                        updateForPart(partCoords, dummyEntriesToPropagate);
+                        currentCycle -= 2U;
+                        const PointSet& previousSet2 = pointsInParts.find(partCoords)->second;
+                        if (previousSet2 == timesConfigsLst.front().first->first) {
+                            // Therefore the period must be 2.
+                            // Keep only the last element.
+                            timesConfigsLst.erase(
+                                std::next(timesConfigsLst.begin()), timesConfigsLst.end());
+                            // itWC is already as timesConfigsLst.front().first;
+
+                            // keep even in whenConfigs only one element (before adding the second).
+                            whenConfigs.erase(std::next(itWC), whenConfigs.end());
+                            whenConfigs.erase(whenConfigs.begin(), itWC);
+
+                            okFix = true;
+                            period = 2U;
+                        }
+                    }
+
+                    if (okFix) {
+                        timesConfigsLst.emplace_back(
+                            whenConfigs.emplace(std::move(previousSet1), 0U).first, 1U);
+                        timesConfigsLst.front().second = period; // redoundant in case of
+                                                                 // period==1U.
+                    }
+
+                    // Need to correctly re-update pointsInParts.
+                    updateForPart(partCoords, dummyEntriesToPropagate);
                 }
 
                 // auto nDebug = itP->second.size();
@@ -1327,9 +1423,9 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             auto itC = configsHistInUnstableParts.find(partCoords);
             auto itT = timesConfigsHistInUnstableParts.find(partCoords);
             WhenConfigs& whenConfigs = itC->second;
-            TimesToConfig& timesConfigs = itT->second;
+            TimesToConfigLst& timesConfigsLst = itT->second;
 
-            CycleCount period = timesConfigs.size();
+            CycleCount period = timesConfigsLst.front().second;
             // the relative step index is 0 but must be shifted to when currentCycle was zero.
             CycleCount backIndex = 0U;
 
@@ -1338,43 +1434,56 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                 backIndex = 0U; // currentCycle is multiple of period.
             }
 
-            const auto copyFirstConfig = timesConfigs[0U]->first; // before moving stuff.
-            auto timesConfigsSize = timesConfigs.size(); // save before moving.
+            const auto copyFirstConfig
+                = timesConfigsLst.front().first->first; // save before moving stuff.
 
             auto [itR, newInResume] = stableResume.emplace(
                 std::move(whenConfigs),
                 std::make_tuple(
-                    std::move(timesConfigs), std::unordered_map<CycleCount, PosCount>()));
+                    std::move(timesConfigsLst), std::unordered_map<CycleCount, PosCount>()));
 
             if (newInResume) {
                 std::get<1>(itR->second)[backIndex] = 1U; // one part only.
             } else {
                 // first, the index must be shifted, based on the comparison between
-                // timesConfigs and itR->second.first; exploit copyFirstConfig.
-                const TimesToConfig& resumeTimesConfigs = std::get<0>(itR->second);
-                if (resumeTimesConfigs.size() != timesConfigsSize) {
+                // timesConfigsLst and itR->second.first; exploit copyFirstConfig.
+                const TimesToConfigLst& resumeTimesConfigsLst = std::get<0>(itR->second);
+
+                if (resumeTimesConfigsLst.front().second != period) {
                     /* this is possible, due to jumped iterations, that might lead not to
                         realize soon a period and consider a longer period
                     std::runtime_error("inconsistent timesConfigs"); */
-                    period = resumeTimesConfigs.size();
+
+                    // period = std::gcd(resumeTimesConfigs.front().second,period);
+                    // TODO: it may be possible to mix information, based on
+                    // the one coming from timesConfigs.
+                    period = resumeTimesConfigsLst.front().second;
+
                     backIndex = period - (currentCycle % period);
                     if (backIndex == period) {
                         backIndex = 0U; // currentCycle is multiple of period.
                     }
                 }
-                bool found = false;
-                for (size_t i = 1U; (i < resumeTimesConfigs.size()) && !found; ++i) {
-                    if (resumeTimesConfigs[i]->first == copyFirstConfig) {
-                        // in the resume, there is a delay 'i', therefore it is
-                        // like the new one started 'i' steps earlier compared
-                        // to the sequence already present in the resume map.
-                        backIndex = ((backIndex + i) % period);
-                        found = true;
-                    }
-                }
 
-                if ((!found) && (resumeTimesConfigs[0U]->first != copyFirstConfig)) {
-                    throw std::runtime_error("inconsistent resumeTimesConfigs");
+                if (resumeTimesConfigsLst.front().first->first != copyFirstConfig) {
+                    bool found = false;
+                    CycleCount accumulate = 0U;
+                    auto itResumeTimesConfigs = std::next(resumeTimesConfigsLst.begin());
+                    for (; (itResumeTimesConfigs != resumeTimesConfigsLst.end()) && !found;) {
+                        const auto [it, count] = *(itResumeTimesConfigs++);
+                        accumulate += count;
+                        if (it->first == copyFirstConfig) {
+                            // in the resume, there is a delay 'accumulate', therefore
+                            // it is like the new one started 'i' steps earlier compared
+                            // to the sequence already present in the resume map.
+                            backIndex = ((backIndex + accumulate) % period);
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+                        throw std::runtime_error("inconsistent resumeTimesConfigs");
+                    }
                 }
 
                 std::get<1>(itR->second)[backIndex]++; // one more for the new part.
@@ -1482,7 +1591,8 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
         PosCount newCount = 0U;
 
-        if (((NumSteps - currentCycle) % lastPeriodBetweenNewMaxMan) == 0U) {
+        if (((NumSteps - currentCycle) % (multipleOfLastPeriod * lastPeriodBetweenNewMaxMan))
+            == 0U) {
             newCount = computeNumPoints(/*debugPoints,stableCheck*/);
 
             const auto superCycle1 = superLastThree.at(1).first;
@@ -1506,6 +1616,10 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                                 break;
                             }
                         }
+                    } else {
+                        ++multipleOfLastPeriod;
+                        // try with higher period, which also covers repeating previous
+                        // periods (all divisors).
                     }
                 }
             }
