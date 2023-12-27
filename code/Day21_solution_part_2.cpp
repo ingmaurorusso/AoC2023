@@ -20,6 +20,8 @@
 
 namespace{
 
+constexpr bool UseOnlySuperConfirmation = true;
+
 constexpr std::string_view Input =
 false ?
 
@@ -265,14 +267,13 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::array<char, MaxLineLength + 1> cc{};
     while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
-        std::string errorLine = "Input error at the line n. "
-            + std::to_string(static_cast<int>(lineCount)) + " : ";
+        std::string errorLine
+            = "Input error at the line n. " + std::to_string(static_cast<int>(lineCount)) + " : ";
 
         auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
-            throw std::invalid_argument(
-                errorLine + "longer than " + std::to_string(MaxLineLength));
+            throw std::invalid_argument(errorLine + "longer than " + std::to_string(MaxLineLength));
         }
 
         std::string line;
@@ -326,11 +327,11 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     const auto& cLines = lines;
 
     const auto movePoint = [&lines = cLines](
-                                Point& p,
-                                Dir d,
-                                Coord stepMoreThan1 = 0U,
-                                bool acceptBeyond = false,
-                                bool toroidal = false) {
+                               Point& p,
+                               Dir d,
+                               Coord stepMoreThan1 = 0U,
+                               bool acceptBeyond = false,
+                               bool toroidal = false) {
         static const auto nRows = static_cast<Coord>(lines.size());
         static const auto nCols = static_cast<Coord>(lines[0].size());
 
@@ -459,9 +460,8 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
         return false; // all equivalent
     };
-    static const std::function<bool(const PointSet&, const PointSet&)> compPointSet
-        = compPointSetL;
-    using WhenConfigs
+    static const std::function<bool(const PointSet&, const PointSet&)> compPointSet = compPointSetL;
+    using WhenConfigs // TODO: unordered
         = std::map<PointSet, CycleCount, decltype(compPointSet)>; // map as short size expected.
     static const auto compWhenConfigsL = [](const WhenConfigs& wc1, const WhenConfigs& wc2) {
         if (wc1.size() != wc2.size()) {
@@ -490,7 +490,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     using ExitHistory = std::map<CycleCount, std::set<Entry>>; // need ordered.
 
     // for each entry point, compute configs until cycle.
-    // ok not unordered, the
+    // ok not unordered, the (TODO: complete the comment).
     std::map<Entry, WhenConfigs> configsByEntry;
     std::map<Entry, TimesToConfig> timesByEntry;
     std::map<Entry, CycleCount> cycleStartByEntry;
@@ -552,13 +552,13 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     const auto& cRocksBorder = rocksBorder;
 
     const auto computeConfigs = [&configsByEntry,
-                                    &timesByEntry,
-                                    &cycleStartByEntry,
-                                    &exitByEntry,
-                                    &cLines,
-                                    &cRocksBorder,
-                                    &movePoint,
-                                    &isRock](Entry entry) {
+                                 &timesByEntry,
+                                 &cycleStartByEntry,
+                                 &exitByEntry,
+                                 &cLines,
+                                 &cRocksBorder,
+                                 &movePoint,
+                                 &isRock](Entry entry) {
         static const auto nRows = static_cast<Coord>(cLines.size());
         static const auto nCols = static_cast<Coord>(cLines[0].size());
 
@@ -626,7 +626,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
                                     const bool oddEntry = ((when % 2U) == 1U);
                                     auto cEntry = isVertDir(dir) ? entryAlready.first.x
-                                                                    : entryAlready.first.y;
+                                                                 : entryAlready.first.y;
 
                                     if (odd == oddEntry) {
                                         auto c0 = c;
@@ -645,8 +645,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                                                 cRockSetRef
                                                 = std::ref(cRocksBorder[toUnderlying(dir)]);
 
-                                            const auto itRock
-                                                = cRockSetRef.get().lower_bound(c0);
+                                            const auto itRock = cRockSetRef.get().lower_bound(c0);
                                             if ((itRock != cRockSetRef.get().end())
                                                 && (*itRock <= cEntry)) {
                                                 // some rock in the middle. Don't eliminate, as
@@ -679,13 +678,13 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             points = newPoints;
             // printPoints(points);
 
-            auto [it, ok] = whenConfigs.emplace(points, currentCycle);
+            auto [it, ok] = whenConfigs.emplace(points, currentCycle); //(_6_)a
             if (ok) {
                 timesConfigs.push_back(it); // in position with index currentCycle.
             } else {
                 cycleFound = true;
                 // cycleStart = it->second;
-                cycleStartByEntry[entry] = it->second;
+                cycleStartByEntry[entry] = it->second; //(_6_)
             }
         }
     };
@@ -743,8 +742,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     workingEntriesPerPart[SuperPoint{0U, 0U}].emplace(
         EntryAndTime{startEntry, 0U}, exitByEntry[startEntry]);
-    pointsInParts.emplace(SuperPoint{0U, 0U}, PointSet(1U, hashPoint))
-        .first->second.insert(startP);
+    pointsInParts.emplace(SuperPoint{0U, 0U}, PointSet(1U, hashPoint)).first->second.insert(startP);
 
     SuperPointSet fullParts(0U, hashPoint);
 
@@ -753,8 +751,10 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     std::unordered_set<SuperPoint, decltype(hashPoint)> activeParts(0U, hashPoint);
     std::unordered_set<SuperPoint, decltype(hashPoint)> unstableParts(0U, hashPoint);
-    using StableResume = std::map<
-        WhenConfigs,
+    using StableResume = std::map< // TODO: unordered
+        WhenConfigs, // in the stable resume only the config matters, not the cycle.
+                     // The cyclecoutn only matters in (_6_) [recorded in (_6_)a
+                     // and reused in (_6_)b]
         std::tuple<TimesToConfig, std::unordered_map<CycleCount, PosCount>>,
         decltype(compWhenConfigs)>;
     std::unordered_map<SuperPoint, StableResume::iterator, decltype(hashPoint)> stableParts(
@@ -779,190 +779,189 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     using EntriesToPropagate = std::map<SuperPoint, std::set<Entry>>;
 
-    const auto updateForPart =
-        [&pointsInParts,
-            &fullParts,
-            &workingEntriesPerPart,
-            &timesByEntry,
-            &cycleStartByEntry,
-            &movePoint,
-            &currentCycle,
-            nonRocksInBasicField](SuperPoint partCoords, EntriesToPropagate& entriesToPropagate) {
-            auto itP = pointsInParts.find(partCoords);
-            if (itP == pointsInParts.end()) {
-                // possible because pointsInParts is lightened when a key enters into
-                // stableParts, whereas this is not done for workingEntriesPerPart as it aims to
-                // stop propagations when possible. TODO: likely possible to infer a reduction
-                // also in workingEntriesPerPart when a part is stable since long long time....
-                // in the sense that the risk not to block a future propagation is much lower
-                // than the advantage to reduce memory in workingEntriesPerPart.
-                itP = pointsInParts.emplace(partCoords, PointSet(1U, hashPoint)).first;
-            }
+    const auto updateForPart
+        = [&pointsInParts,
+           &fullParts,
+           &workingEntriesPerPart,
+           &timesByEntry,
+           &cycleStartByEntry,
+           &movePoint,
+           &currentCycle,
+           nonRocksInBasicField](SuperPoint partCoords, EntriesToPropagate& entriesToPropagate) {
+              auto itP = pointsInParts.find(partCoords);
+              if (itP == pointsInParts.end()) {
+                  // possible because pointsInParts is lightened when a key enters into
+                  // stableParts, whereas this is not done for workingEntriesPerPart as it aims to
+                  // stop propagations when possible. TODO: likely possible to infer a reduction
+                  // also in workingEntriesPerPart when a part is stable since long long time....
+                  // in the sense that the risk not to block a future propagation is much lower
+                  // than the advantage to reduce memory in workingEntriesPerPart.
+                  itP = pointsInParts.emplace(partCoords, PointSet(1U, hashPoint)).first;
+              }
 
-            // not true this may be const, later there is "exitHistory.erase(itH);".
-            // cppcheck-suppress constVariable
-            std::map<EntryAndTime, ExitHistory>& entriesAndTimeWithHistory
-                = workingEntriesPerPart[partCoords];
+              // not true this may be const, later there is "exitHistory.erase(itH);".
+              // cppcheck-suppress constVariable
+              std::map<EntryAndTime, ExitHistory>& entriesAndTimeWithHistory
+                  = workingEntriesPerPart[partCoords];
 
-            PointSet newPoints(itP->second.size(), hashPoint);
-            for (auto& [entryAndTime, exitHistory] : entriesAndTimeWithHistory) {
-                const auto& entry = entryAndTime.first;
-                const auto when = entryAndTime.second;
+              PointSet newPoints(itP->second.size(), hashPoint);
+              for (auto& [entryAndTime, exitHistory] : entriesAndTimeWithHistory) {
+                  const auto& entry = entryAndTime.first;
+                  const auto when = entryAndTime.second;
 
-                const auto elapsedTime = currentCycle - when;
+                  const auto elapsedTime = currentCycle - when;
 
-                const TimesToConfig& times = timesByEntry[entry];
-                const CycleCount cycleStart = cycleStartByEntry[entry];
+                  const TimesToConfig& times = timesByEntry[entry];
+                  const CycleCount cycleStart = cycleStartByEntry[entry];
 
-                const CycleCount period = times.size() - cycleStart;
+                  const CycleCount period = times.size() - cycleStart;
 
-                // -> links to configsByEntry[entry]
-                auto index = (elapsedTime > cycleStart)
-                    ? cycleStart + ((elapsedTime - cycleStart) % period)
-                    : elapsedTime;
-                auto addPoints = times[index]->first; // a copy
-                newPoints.merge(addPoints);
+                  // -> links to configsByEntry[entry]
+                  auto index = (elapsedTime > cycleStart)
+                      ? cycleStart + ((elapsedTime - cycleStart) % period)
+                      : elapsedTime;
+                  auto addPoints = times[index]->first; // a copy
+                  newPoints.merge(addPoints);
 
-                const auto itH = exitHistory.find(elapsedTime);
-                if (itH != exitHistory.end()) {
-                    const std::set<Entry>& exits = itH->second;
-                    for (const auto& exit : exits) {
-                        SuperPoint newPart = partCoords;
-                        movePoint(newPart, exit.second, 0U, true);
+                  const auto itH = exitHistory.find(elapsedTime);
+                  if (itH != exitHistory.end()) {
+                      const std::set<Entry>& exits = itH->second;
+                      for (const auto& exit : exits) {
+                          SuperPoint newPart = partCoords;
+                          movePoint(newPart, exit.second, 0U, true);
 
-                        entriesToPropagate[newPart].insert(exit);
-                    }
+                          entriesToPropagate[newPart].insert(exit);
+                      }
 
-                    exitHistory.erase(itH);
-                    // useless to repeat again in the future, but the element
-                    // is not removed from entriesAndTimeWithHistory, in order
-                    // to keep memory of something already done.
-                }
-            }
+                      exitHistory.erase(itH);
+                      // useless to repeat again in the future, but the element
+                      // is not removed from entriesAndTimeWithHistory, in order
+                      // to keep memory of something already done.
+                  }
+              }
 
-            if (newPoints.size() == nonRocksInBasicField) {
-                // TODO: never hit in example and real input.
-                // Simpy keep the information that this part is full.
-                // const auto itPsave = std::next(itP);
-                pointsInParts.erase(itP);
-                // itP = itPsave;
-                fullParts.insert(partCoords);
+              if (newPoints.size() == nonRocksInBasicField) {
+                  // TODO: still to check, as never hit in example and real input.
+                  // Simpy keep the information that this part is full.
+                  // const auto itPsave = std::next(itP);
+                  pointsInParts.erase(itP);
+                  // itP = itPsave;
+                  fullParts.insert(partCoords);
 
-                workingEntriesPerPart.erase(partCoords); // as this is by then also useless.
-            } else {
-                itP->second = std::move(newPoints);
-                // ++itP;
-            }
-        };
+                  workingEntriesPerPart.erase(partCoords); // as this is by then also useless.
+              } else {
+                  itP->second = std::move(newPoints);
+                  // ++itP;
+              }
+          };
 
-    const auto computeNumPoints
-        = [&](/*PointSet& debugPoints,std::map<SuperPoint,PointSet>& stableOut*/) {
+    const auto computeNumPoints =
+        [&](/*PointSet& debugPoints,std::map<SuperPoint,PointSet>& stableOut*/) {
+            /*
+            debugPoints.clear();
+            stableOut.clear();
+            */
+
+            // full ones
+            PosCount numPoints = fullParts.size() * nonRocksInBasicField;
+
+            // active ones
+            // std::cout << "active parts n. " << activeParts.size() << std::endl;
+            for (const auto partCoords : activeParts) {
+                // already computed
                 /*
-                debugPoints.clear();
-                stableOut.clear();
+                auto copyPoints = pointsInParts.find(partCoords)->second;
+                for(auto p : copyPoints)
+                    debugPoints.insert(Point{p.x+partCoords.x*nCols,p.y+partCoords.y*nRows});
+
+                numPoints += copyPoints.size();
+                */
+                numPoints += pointsInParts.find(partCoords)->second.size();
+            }
+
+            // unstable ones
+            // std::cout << "unstable parts n. " << unstableParts.size() << std::endl;
+            for (const auto partCoords : unstableParts) {
+                // already computed
+                /*
+                auto copyPoints = pointsInParts.find(partCoords)->second;
+                for(auto p : copyPoints)
+                    debugPoints.insert(Point{p.x+partCoords.x*nCols,p.y+partCoords.y*nRows});
+
+                numPoints += copyPoints.size();
                 */
 
-                // full ones
-                PosCount numPoints = fullParts.size() * nonRocksInBasicField;
+                numPoints += pointsInParts.find(partCoords)->second.size();
+            }
 
-                // active ones
-                // std::cout << "active parts n. " << activeParts.size() << std::endl;
-                for (const auto partCoords : activeParts) {
-                    // already computed
-                    /*
-                    auto copyPoints = pointsInParts.find(partCoords)->second;
-                    for(auto p : copyPoints)
-                        debugPoints.insert(Point{p.x+partCoords.x*nCols,p.y+partCoords.y*nRows});
+            // stable ones
+            for (auto itResume = stableResume.begin(); itResume != stableResume.end(); ++itResume) {
+                const auto& [whenConfigs, resumeTuple] = *itResume;
 
-                    numPoints += copyPoints.size();
-                    */
-                    numPoints += pointsInParts.find(partCoords)->second.size();
-                }
+                const TimesToConfig& timesToConfig = std::get<0>(resumeTuple);
+                const std::unordered_map<CycleCount, PosCount>& whenAndHowMany
+                    = std::get<1>(resumeTuple);
 
-                // unstable ones
-                // std::cout << "unstable parts n. " << unstableParts.size() << std::endl;
-                for (const auto partCoords : unstableParts) {
-                    // already computed
-                    /*
-                    auto copyPoints = pointsInParts.find(partCoords)->second;
-                    for(auto p : copyPoints)
-                        debugPoints.insert(Point{p.x+partCoords.x*nCols,p.y+partCoords.y*nRows});
+                CycleCount period = timesToConfig.size();
 
-                    numPoints += copyPoints.size();
-                    */
+                for (const auto [modWhenZero, howMany] : whenAndHowMany) {
+                    CycleCount modCycleCount = (modWhenZero + currentCycle) % period;
 
-                    numPoints += pointsInParts.find(partCoords)->second.size();
-                }
+                    const PointSet& pointsStable = timesToConfig[modCycleCount]->first;
+                    PosCount partial = pointsStable.size();
+                    if (partial == 0U) {
+                        // just the dummy element of whenConfigs. Need to recompute specifically
+                        // because of jumped iterations -> see (_5_)). Need to find some of the
+                        // stableParts corresponding to the current element of stableResume.
+                        bool found = false;
+                        for (const auto& [partCoords, itResumeFromStable] : stableParts) {
+                            if ((itResumeFromStable == itResume)
+                                && (stablePartsModPer[partCoords] == modWhenZero)) {
+                                EntriesToPropagate dummyEntriesToPropagate;
+                                updateForPart(partCoords, dummyEntriesToPropagate);
+                                const PointSet& pointsStable2
+                                    = pointsInParts.find(partCoords)->second;
+                                partial = pointsStable2.size();
+                                found = true;
 
-                // stable ones
-                for (auto itResume = stableResume.begin(); itResume != stableResume.end();
-                    ++itResume) {
-                    const auto& [whenConfigs, resumeTuple] = *itResume;
+                                /*
+                                stableOut[partCoords] = pointsStable2;
 
-                    const TimesToConfig& timesToConfig = std::get<0>(resumeTuple);
-                    const std::unordered_map<CycleCount, PosCount>& whenAndHowMany
-                        = std::get<1>(resumeTuple);
-
-                    CycleCount period = timesToConfig.size();
-
-                    for (const auto [modWhenZero, howMany] : whenAndHowMany) {
-                        CycleCount modCycleCount = (modWhenZero + currentCycle) % period;
-
-                        const PointSet& pointsStable = timesToConfig[modCycleCount]->first;
-                        PosCount partial = pointsStable.size();
-                        if (partial == 0U) {
-                            // just the dummy element of whenConfigs, need to recompute
-                            // specifically because of jumped iteration. Need to find some of the
-                            // stableParts corresponding to the current element of stableResume.
-                            bool found = false;
-                            for (const auto& [partCoords, itResumeFromStable] : stableParts) {
-                                if ((itResumeFromStable == itResume)
-                                    && (stablePartsModPer[partCoords] == modWhenZero)) {
-                                    EntriesToPropagate dummyEntriesToPropagate;
-                                    updateForPart(partCoords, dummyEntriesToPropagate);
-                                    const PointSet& pointsStable2
-                                        = pointsInParts.find(partCoords)->second;
-                                    partial = pointsStable2.size();
-                                    found = true;
-
-                                    /*
-                                    stableOut[partCoords] = pointsStable2;
-
-                                    // debug:
-                                    for(const auto& [partCoords2,itResumeFromStable2] :
-                                    stableParts){ if ((itResumeFromStable2 == itResume) &&
-                                    (stablePartsModPer[partCoords2] == modWhenZero)){
-                                            stableOut[partCoords2] = pointsStable2;
-                                        }
+                                // debug:
+                                for(const auto& [partCoords2,itResumeFromStable2] :
+                                stableParts){ if ((itResumeFromStable2 == itResume) &&
+                                (stablePartsModPer[partCoords2] == modWhenZero)){
+                                        stableOut[partCoords2] = pointsStable2;
                                     }
-                                    */
-
-                                    break;
                                 }
-                            }
+                                */
 
-                            if (!found) {
-                                throw std::runtime_error("inconsistent stableParts");
-                            }
-                        } /* else{
-                            // debug:
-                            for(const auto& [partCoords,itResumeFromStable] : stableParts){
-                                if ((itResumeFromStable == itResume) &&
-                        (stablePartsModPer[partCoords] == modWhenZero)){ stableOut[partCoords] =
-                        pointsStable;
-                                }
+                                break;
                             }
                         }
-                        */
 
-                        partial *= howMany;
-
-                        numPoints += partial;
+                        if (!found) {
+                            throw std::runtime_error("inconsistent stableParts");
+                        }
+                    } /* else{
+                        // debug:
+                        for(const auto& [partCoords,itResumeFromStable] : stableParts){
+                            if ((itResumeFromStable == itResume) &&
+                    (stablePartsModPer[partCoords] == modWhenZero)){ stableOut[partCoords] =
+                    pointsStable;
+                            }
+                        }
                     }
-                }
+                    */
 
-                return numPoints;
-            };
+                    partial *= howMany;
+
+                    numPoints += partial;
+                }
+            }
+
+            return numPoints;
+        };
 
     Coord oldMaxManDistPart = 0U;
 
@@ -987,63 +986,62 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     const auto inferNumPointsLD
         = [&finalCoeffNum, &finalCoeffDenum](CycleCount cycleIn, PosCount& posCount) {
-                // infer based on the cofficients.
-                auto cycle = static_cast<long double>(cycleIn);
-                long double cycle2 = cycle * cycle;
+              // infer based on the cofficients.
+              auto cycle = static_cast<long double>(cycleIn);
+              long double cycle2 = cycle * cycle;
 
-                posCount = static_cast<PosCount>(
-                    (cycle2 * finalCoeffNum.at(0U) / finalCoeffDenum.at(0U))
-                    + (cycle * finalCoeffNum.at(1U) / finalCoeffDenum.at(1U))
-                    + (static_cast<long double>(finalCoeffNum.at(2U)) / finalCoeffDenum.at(2U)));
+              posCount = static_cast<PosCount>(
+                  (cycle2 * finalCoeffNum.at(0U) / finalCoeffDenum.at(0U))
+                  + (cycle * finalCoeffNum.at(1U) / finalCoeffDenum.at(1U))
+                  + (static_cast<long double>(finalCoeffNum.at(2U)) / finalCoeffDenum.at(2U)));
 
-                return true;
-            };
+              return true;
+          };
 
-    const auto inferNumPoints = [&finalCoeffNum, &finalCoeffDenum, &inferNumPointsLD](
-                                    CycleCount cycleIn,
-                                    PosCount& posCount,
-                                    bool mayTryLongDouble = false) {
-        // infer based on the cofficients.
-        auto cycle = static_cast<DetType>(cycleIn);
-        DetType cycle2 = cycle * cycle;
+    const auto inferNumPoints
+        = [&finalCoeffNum, &finalCoeffDenum, &inferNumPointsLD](
+              CycleCount cycleIn, PosCount& posCount, bool mayTryLongDouble = false) {
+              // infer based on the cofficients.
+              auto cycle = static_cast<DetType>(cycleIn);
+              DetType cycle2 = cycle * cycle;
 
-        auto gcd0 = std::gcd(cycle2, finalCoeffDenum.at(0U));
-        if (finalCoeffNum.at(0U) != 0) {
-            if (cycle2 / gcd0 > std::numeric_limits<DetType>::max() / finalCoeffNum.at(0U)) {
-                std::cout << "need higher type, try long double\n";
-                if (!mayTryLongDouble) {
-                    throw std::runtime_error("neeed long double to try");
-                } // else:
-                return inferNumPointsLD(cycleIn, posCount);
-            }
-        }
-        DetType num0 = (cycle2 / gcd0) * finalCoeffNum.at(0U);
-        DetType denum0 = finalCoeffDenum.at(0U) / gcd0;
+              auto gcd0 = std::gcd(cycle2, finalCoeffDenum.at(0U));
+              if (finalCoeffNum.at(0U) != 0) {
+                  if (cycle2 / gcd0 > std::numeric_limits<DetType>::max() / finalCoeffNum.at(0U)) {
+                      std::cout << "need higher type, try long double\n";
+                      if (!mayTryLongDouble) {
+                          throw std::runtime_error("neeed long double to try");
+                      } // else:
+                      return inferNumPointsLD(cycleIn, posCount);
+                  }
+              }
+              DetType num0 = (cycle2 / gcd0) * finalCoeffNum.at(0U);
+              DetType denum0 = finalCoeffDenum.at(0U) / gcd0;
 
-        auto gcd1 = std::gcd(cycle, finalCoeffDenum.at(1U));
-        DetType num1 = (cycle / gcd1) * finalCoeffNum.at(1U);
-        DetType denum1 = finalCoeffDenum.at(1U) / gcd1;
+              auto gcd1 = std::gcd(cycle, finalCoeffDenum.at(1U));
+              DetType num1 = (cycle / gcd1) * finalCoeffNum.at(1U);
+              DetType denum1 = finalCoeffDenum.at(1U) / gcd1;
 
-        DetType num2 = finalCoeffNum.at(2U);
-        DetType denum2 = finalCoeffDenum.at(2U);
+              DetType num2 = finalCoeffNum.at(2U);
+              DetType denum2 = finalCoeffDenum.at(2U);
 
-        auto lcmTot = std::lcm(denum0, denum1);
-        lcmTot = std::lcm(lcmTot, denum2);
+              auto lcmTot = std::lcm(denum0, denum1);
+              lcmTot = std::lcm(lcmTot, denum2);
 
-        auto numTot
-            = num0 * (lcmTot / denum0) + num1 * (lcmTot / denum1) + num2 * (lcmTot / denum2);
+              auto numTot
+                  = num0 * (lcmTot / denum0) + num1 * (lcmTot / denum1) + num2 * (lcmTot / denum2);
 
-        if (numTot > 0) {
-            // Elements of finalCoeffDenum are properly set to non-zero before they are used.
-            // NOLINTNEXTLINE(clang-analyzer-core.DivideZero)
-            if ((numTot % lcmTot) == 0) {
-                posCount = static_cast<PosCount>(numTot / lcmTot);
-                return true;
-            }
-        }
+              if (numTot > 0) {
+                  // Elements of finalCoeffDenum are properly set to non-zero before they are used.
+                  // NOLINTNEXTLINE(clang-analyzer-core.DivideZero)
+                  if ((numTot % lcmTot) == 0) {
+                      posCount = static_cast<PosCount>(numTot / lcmTot);
+                      return true;
+                  }
+              }
 
-        return false;
-    };
+              return false;
+          };
 
     while (currentCycle < NumSteps) {
         ++currentCycle;
@@ -1067,12 +1065,11 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
             minManDistPart
                 = std::min(minManDistPart, std::abs(partCoords.x) + std::abs(partCoords.y));
 
-            bool stillActive = false;
-
             const auto itW = workingEntriesPerPart.find(partCoords);
 
             const std::map<EntryAndTime, ExitHistory>& entriesAndTimeWithHistory = itW->second;
 
+            bool stillActive = false;
             for (const auto& [entryAndTime, exitHistory] : entriesAndTimeWithHistory) {
                 // const auto& entry = entryAndTime.first;
                 const auto when = entryAndTime.second;
@@ -1147,8 +1144,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                 continue; // the part is already full.
             } // else:
 
-            std::map<EntryAndTime, ExitHistory>& workingEntries
-                = workingEntriesPerPart[partCoords];
+            std::map<EntryAndTime, ExitHistory>& workingEntries = workingEntriesPerPart[partCoords];
             PointSet& pointsInPart
                 = pointsInParts.emplace(partCoords, PointSet(0U, hashPoint)).first->second;
             // remains added if the propagation fails, not a problem.
@@ -1199,12 +1195,14 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                     {
                         auto itSt = stableParts.find(partCoords);
                         if (itSt != stableParts.end()) {
-                            // TODO: never hit in example and real input.
+                            // TODO: still to check, as never hit in example and real input.
                             auto itStModPer = stablePartsModPer.find(partCoords);
+                            // exploit itStModPer to remove the proper count
+                            // from stableResume.
 
                             std::get<1>(
                                 itSt->second->second)[itStModPer->second]--; // don't care if it
-                                                                                // remains zero.
+                                                                             // remains zero.
 
                             stableParts.erase(itSt);
                             stablePartsModPer.erase(itStModPer);
@@ -1253,30 +1251,32 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
         for (const auto partCoords : unstableParts) {
             // check periodicity for partCoords.
             WhenConfigs& whenConfigs = configsHistInUnstableParts.find(partCoords)->second;
-            TimesToConfig& timesConfigs
-                = timesConfigsHistInUnstableParts.find(partCoords)->second;
+            TimesToConfig& timesConfigs = timesConfigsHistInUnstableParts.find(partCoords)->second;
 
             const auto itP = pointsInParts.find(partCoords);
 
             const auto [itWC, isNewC] = whenConfigs.emplace(itP->second, 0U);
             // here 0U is used, not currentCycle, so that the whenConfigs may match in
-            // stableResume. Indeed, the eral cycle number does not matter, but the record in
+            // stableResume. Indeed, the real cycle number does not matter, but the record in
             // timesConfigs that are implicitly associated to the last steps until currentCycle.
-            if (isNewC) {
-                if (!timesConfigs.empty()) {
-                    // preliminary insert dummy elements for the jumped iterations:
-                    CycleCount jumpedIter = currentCycle - oldCurrentCycle;
-                    if (jumpedIter > 1U) {
-                        timesConfigs.resize(
-                            timesConfigs.size() + jumpedIter - 1U,
-                            whenConfigs.find(PointSet(
-                                0U, hashPoint))); // to the dummy element with the empty set.
-                    }
-                }
 
+
+            if (!timesConfigs.empty()) {
+                // preliminary insert dummy elements for the jumped iterations:
+                CycleCount jumpedIter = currentCycle - oldCurrentCycle;
+                if (jumpedIter > 1U) {
+                    //(_5_)
+                    timesConfigs.resize(
+                        timesConfigs.size() + jumpedIter - 1U,
+                        whenConfigs.find(
+                            PointSet(0U, hashPoint))); // to the dummy element with the empty set.
+                }
+            }
+
+            if (isNewC) {
                 timesConfigs.push_back(itWC);
             } else {
-                // period found, stop, remove from unstable, but keep
+                // period found; stop, remove from unstable, but keep
                 // in configsHistInUnstableParts and timesConfigsHistInUnstableParts.
 
                 // The period may have begun not for timesConfigs[0].
@@ -1289,10 +1289,22 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                 }
 
                 if (realPeriodRefStart > 0U) {
+                    // shift back the proper elements and then reduce size.
                     CycleCount source = realPeriodRefStart;
                     CycleCount dest = 0U;
                     while (source < timesConfigs.size()) {
-                        timesConfigs[dest++] = timesConfigs[source++];
+                        auto& itRef = timesConfigs[dest++];
+                        if ((dest - 1U < realPeriodRefStart) && !itRef->first.empty()) {
+                            whenConfigs.erase(itRef);
+                        }
+                        itRef = timesConfigs[source++];
+                    }
+                    while (dest < realPeriodRefStart) {
+                        // for the case when realPeriodRefStart > size()/2.
+                        const auto it = timesConfigs[dest++];
+                        if (!it->first.empty()) { // avoid the dummy element.
+                            whenConfigs.erase(it);
+                        }
                     }
                     timesConfigs.resize(timesConfigs.size() - realPeriodRefStart);
                 }
@@ -1323,7 +1335,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
 
             backIndex = period - (currentCycle % period);
             if (backIndex == period) {
-                backIndex = 0U; // currentCycle multiple of period.
+                backIndex = 0U; // currentCycle is multiple of period.
             }
 
             const auto copyFirstConfig = timesConfigs[0U]->first; // before moving stuff.
@@ -1334,14 +1346,11 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                 std::make_tuple(
                     std::move(timesConfigs), std::unordered_map<CycleCount, PosCount>()));
 
-            // using StableResume =
-            // std::map<WhenConfigs,std::pair<TimesToConfig,std::unordered_map<CycleCount,PosCount>>>;???
-
             if (newInResume) {
                 std::get<1>(itR->second)[backIndex] = 1U; // one part only.
             } else {
                 // first, the index must be shifted, based on the comparison between
-                // timesConfigs and itR->second.first Exploit copyFirstConfig.
+                // timesConfigs and itR->second.first; exploit copyFirstConfig.
                 const TimesToConfig& resumeTimesConfigs = std::get<0>(itR->second);
                 if (resumeTimesConfigs.size() != timesConfigsSize) {
                     /* this is possible, due to jumped iterations, that might lead not to
@@ -1350,7 +1359,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                     period = resumeTimesConfigs.size();
                     backIndex = period - (currentCycle % period);
                     if (backIndex == period) {
-                        backIndex = 0U; // currentCycle multiple of period.
+                        backIndex = 0U; // currentCycle is multiple of period.
                     }
                 }
                 bool found = false;
@@ -1546,7 +1555,7 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
                 doingFinalWaitConfirmation2 = true;
                 rescrollInConfirmation2 = 0U;
                 startDoingFinalWaitConfirmation2 = currentCycle;
-            } else {
+            } else if constexpr (!UseOnlySuperConfirmation) {
                 doingFinalWaitConfirmation = true;
                 savedDets.clear();
             }
@@ -1718,3 +1727,4 @@ N. field rows 131
 N. field cols 131
 Result 639051580070841
 */
+
