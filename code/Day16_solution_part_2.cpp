@@ -202,14 +202,13 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::array<char, MaxLineLength + 1> cc{};
     while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
         ++lineCount;
-        std::string errorLine = "Input error at the line n. "
-            + std::to_string(static_cast<int>(lineCount)) + " : ";
+        std::string errorLine
+            = "Input error at the line n. " + std::to_string(static_cast<int>(lineCount)) + " : ";
 
         auto c = static_cast<size_t>(inputStream->gcount());
         // 'c' includes the delimiter, which is replaced by '\0'.
         if (c > MaxLineLength) {
-            throw std::invalid_argument(
-                errorLine + "longer than " + std::to_string(MaxLineLength));
+            throw std::invalid_argument(errorLine + "longer than " + std::to_string(MaxLineLength));
         }
 
         std::string line;
@@ -223,17 +222,26 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
         // std::stringstream lineStream;
         // lineStream << line;
 
-        if (lineCount == 1U) {
+        if (line.empty()) {
+            std::cout << "WARNING: empty line\n";
+            continue;
+        }
+
+        if (lines.empty()) {
             rowsLength = line.size();
         } else if (rowsLength != line.size()) {
             throw std::invalid_argument(
                 errorLine + "line with length different from previous ones");
         }
 
-        if (!std::accumulate(line.cbegin(), line.cend(), true, [](bool acc, const char ch) {
-                static std::string accepted = "|-\\/.";
-                return acc && (accepted.find(ch) != std::string::npos);
-            })) {
+        if (std::find_if_not(
+                line.cbegin(),
+                line.cend(),
+                [](const char ch) {
+                    static const std::string accepted = "|-\\/.";
+                    return (accepted.find(ch) != std::string::npos);
+                })
+            != line.cend()) {
             throw std::invalid_argument(errorLine + "line with unexpected chars");
         }
 
@@ -244,202 +252,319 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
     using Dir = Direction;
     using Beam = std::pair<Point, Direction>;
     using Beams = std::set<Beam>;
+    using Tiles = std::set<Point>;
 
-    const auto propagate = [&lines](const Beam& initBeam) {
-        const Coord nRows = lines.size();
-        const Coord nCols = lines[0].size();
+    const Coord nRows = lines.size();
+    if (nRows == 0U) {
+        throw std::invalid_argument("no line");
+    }
+    const Coord nCols = lines[0].size();
 
+    std::set<Point> tilesSplit;
+    /*
+    const auto tileSplitsVert = [&tilesSplitIsVert](const Point& tile) {
+        std::optional<bool> split{std::nullopt};
+        const auto it = tilesSplitIsVert.find(tile);
+        if (it != tilesSplitIsVert.end()) {
+            split = it->second;
+            // Will include also in case on the boundary, which is not really needed,
+            // but this is not a big deal.
+        }
+        return split;
+    };
+    */
+
+    {
+        Point tile{};
+        for (tile.y = 0U; tile.y < nRows; ++tile.y) {
+            const auto& line = lines[tile.y];
+            for (tile.x = 0U; tile.x < nCols; ++tile.x) {
+                /*
+                if (line[tile.x] == '-') {
+                    tilesSplitIsVert[tile] = false;
+                }
+                if (line[tile.x] == '|') {
+                    tilesSplitIsVert[tile] = true;
+                }
+                */
+                if ((line[tile.x] == '-') || (line[tile.x] == '|')) {
+                    tilesSplit.insert(tile);
+                }
+            }
+        }
+    }
+
+    constexpr size_t Two = 2U;
+
+    static const auto rotateDir = [](Dir& dir, bool clockwise = true) {
+        switch (dir) {
+        case Dir::Down:
+            dir = clockwise ? Dir::Left : Dir::Right;
+            break;
+        case Dir::Left:
+            dir = clockwise ? Dir::Up : Dir::Down;
+            break;
+        case Dir::Up:
+            dir = clockwise ? Dir::Right : Dir::Left;
+            break;
+        case Dir::Right:
+            dir = clockwise ? Dir::Down : Dir::Up;
+            break;
+        }
+    };
+
+    static const auto isVertDir = [](const Dir dir) {
+        switch (dir) {
+        case Dir::Down:
+            [[fallthrough]];
+        case Dir::Up:
+            return true;
+            break;
+        default:
+            return false;
+        }
+    };
+
+    const auto movePoint = [nRows, nCols](Point& p, Dir d) {
+        bool ok = true;
+        switch (d) {
+        case Dir::Down: {
+            if (p.y == nCols - 1U) {
+                ok = false;
+            } else {
+                p.y++;
+            }
+        } break;
+        case Dir::Up:
+            if (p.y == 0U) {
+                ok = false;
+            } else {
+                p.y--;
+            }
+            break;
+        case Dir::Right: {
+            if (p.x == nRows - 1U) {
+                ok = false;
+            } else {
+                p.x++;
+            }
+        } break;
+        case Dir::Left:
+            if (p.x == 0U) {
+                ok = false;
+            } else {
+                p.x--;
+            }
+            break;
+        }
+
+        return ok;
+    };
+
+    const auto nextBeams = [&lines, &movePoint](const Beam& beam) {
+        std::array<std::optional<Beam>, Two> reachedBeams;
+
+        const auto& pos = beam.first;
+
+        Point newPos{};
+        Dir move{};
+
+        bool splitBeam = false;
+        Dir move2{};
+
+        switch (beam.second) {
+        case Dir::Up:
+            switch (lines[pos.y][pos.x]) {
+            case '.':
+            case '|':
+                move = Dir::Up;
+                break;
+            case '-':
+                move2 = Dir::Left;
+                splitBeam = true;
+                [[fallthrough]];
+            case '/':
+                move = Dir::Right;
+                break;
+            case '\\':
+                move = Dir::Left;
+                break;
+            }
+            break;
+        case Dir::Down:
+            switch (lines[pos.y][pos.x]) {
+            case '.':
+            case '|':
+                move = Dir::Down;
+                break;
+            case '-':
+                move2 = Dir::Right;
+                splitBeam = true;
+                [[fallthrough]];
+            case '/':
+                move = Dir::Left;
+                break;
+            case '\\':
+                move = Dir::Right;
+                break;
+            }
+            break;
+        case Dir::Left:
+            switch (lines[pos.y][pos.x]) {
+            case '.':
+            case '-':
+                move = Dir::Left;
+                break;
+            case '|':
+                move2 = Dir::Up;
+                splitBeam = true;
+                [[fallthrough]];
+            case '/':
+                move = Dir::Down;
+                break;
+            case '\\':
+                move = Dir::Up;
+                break;
+            }
+            break;
+        case Dir::Right:
+            switch (lines[pos.y][pos.x]) {
+            case '.':
+            case '-':
+                move = Dir::Right;
+                break;
+            case '|':
+                move2 = Dir::Down;
+                splitBeam = true;
+                [[fallthrough]];
+            case '/':
+                move = Dir::Up;
+                break;
+            case '\\':
+                move = Dir::Down;
+                break;
+            }
+            break;
+        }
+
+        for (size_t i = 0; i < Two; ++i) {
+            newPos = pos;
+
+            if (movePoint(newPos, move)) {
+                reachedBeams.at(i) = Beam{newPos, move}; // std::make_pair(newPos,move)
+            }
+
+            if (!splitBeam) {
+                break;
+            }
+            move = move2;
+        }
+
+        return reachedBeams;
+    };
+
+    std::map<Beam, Tiles> nextTilesForBeamSplit;
+    std::map<Beam, Beams> nextSplitBeamsForBeamSplit;
+    Beams beamsSplittEver;
+
+    const auto propagate = [&lines,
+                            nRows,
+                            nCols,
+                            &tilesSplit,
+                            &beamsSplittEver,
+                            &nextTilesForBeamSplit,
+                            &nextSplitBeamsForBeamSplit,
+                            &nextBeams](const Beam& initBeam) {
         std::vector<std::string> tilesPrint;
         for (Coord i = 0U; i < nRows; ++i) {
             tilesPrint.emplace_back(nCols, '.');
         }
 
-        const auto printTiles = [&tilesPrint]() {
-            std::cout << "\n\n";
-            for (const auto& tilesPrintRow : tilesPrint) {
-                std::cout << tilesPrintRow << std::endl;
-            }
-            std::cout << "\n\n";
-        };
-
-        Beams beams;
-        std::set<Point> tiles;
-
-        beams.insert(initBeam);
-        tiles.insert(initBeam.first);
+        Tiles tiles{initBeam.first};
         tilesPrint[initBeam.first.y][initBeam.first.x] = '#';
 
-        std::set<Beam> beamsHistory;
+        Beams beamsSplitAlready{initBeam};
 
-        while (!beams.empty()) {
-            Beams newBeams;
-            for (const auto& beam : beams) {
-                const auto& pos = beam.first;
+        static Beam dummyBeam{{nCols, nRows}, Dir{}};
 
-                Point newPos{};
+        // TODO: study why the source code that just uses a history memory in each
+        // single call of propagate (as in solution for part 1), ends earlier.
 
-                Dir move{};
+        // use dummyTile as initBeam is supposed to be on the boundary and
+        // to come from external.
+        std::map<Beam, Beam> beamsAndOrgBeamSplit{{initBeam, dummyBeam}};
+        while (!beamsAndOrgBeamSplit.empty()) {
+            std::map<Beam, Beam> newBeamsAndOrgBeamSplit;
+            for (const auto& [beam, beamOrg] : beamsAndOrgBeamSplit) {
 
-                bool splitBeam = false;
-                Dir move2{};
+                const auto twoNewBeams = nextBeams(beam);
 
-                switch (beam.second) {
-                case Dir::Up:
-                    switch (lines[pos.y][pos.x]) {
-                    case '.':
-                    case '|':
-                        move = Dir::Up;
-                        break;
-                    case '-':
-                        move2 = Dir::Left;
-                        splitBeam = true;
-                        [[fallthrough]];
-                    case '/':
-                        move = Dir::Right;
-                        break;
-                    case '\\':
-                        move = Dir::Left;
-                        break;
-                    }
-                    break;
-                case Dir::Down:
-                    switch (lines[pos.y][pos.x]) {
-                    case '.':
-                    case '|':
-                        move = Dir::Down;
-                        break;
-                    case '-':
-                        move2 = Dir::Right;
-                        splitBeam = true;
-                        [[fallthrough]];
-                    case '/':
-                        move = Dir::Left;
-                        break;
-                    case '\\':
-                        move = Dir::Right;
-                        break;
-                    }
-                    break;
-                case Dir::Left:
-                    switch (lines[pos.y][pos.x]) {
-                    case '.':
-                    case '-':
-                        move = Dir::Left;
-                        break;
-                    case '|':
-                        move2 = Dir::Up;
-                        splitBeam = true;
-                        [[fallthrough]];
-                    case '/':
-                        move = Dir::Down;
-                        break;
-                    case '\\':
-                        move = Dir::Up;
-                        break;
-                    }
-                    break;
-                case Dir::Right:
-                    switch (lines[pos.y][pos.x]) {
-                    case '.':
-                    case '-':
-                        move = Dir::Right;
-                        break;
-                    case '|':
-                        move2 = Dir::Down;
-                        splitBeam = true;
-                        [[fallthrough]];
-                    case '/':
-                        move = Dir::Up;
-                        break;
-                    case '\\':
-                        move = Dir::Down;
-                        break;
-                    }
-                    break;
-                }
+                // regardless of direction beam.second.
+                const bool split = (tilesSplit.count(beam.first) > 0U);
 
-                for (int i = 0; i < 2; ++i) {
-                    newPos = pos;
-                    bool exitBeam = false;
+                for (size_t i = 0; i < Two; ++i) {
+                    if (twoNewBeams.at(i)) {
+                        const auto& newBeam = twoNewBeams.at(i).value();
+                        const auto& newPos = newBeam.first;
 
-                    switch (move) {
-                    case Dir::Up:
-                        if (pos.y > 0U) {
-                            newPos.y--;
-                        } else {
-                            exitBeam = true;
-                        }
-                        break;
-                    case Dir::Down:
-                        if (pos.y < lines.size() - 1U) {
-                            newPos.y++;
-                        } else {
-                            exitBeam = true;
-                        }
-                        break;
-                    case Dir::Right:
-                        if (pos.x < nCols - 1U) {
-                            newPos.x++;
-                        } else {
-                            exitBeam = true;
-                        }
-                        break;
-                    case Dir::Left:
-                        if (pos.x > 0U) {
-                            newPos.x--;
-                        } else {
-                            exitBeam = true;
-                        }
-                        break;
-                    }
+                        // in case of split, newBeam is considered originated by corresponding tile.
+                        const auto& newBeamOrg = split ? newBeam : beamOrg;
 
-                    if (!exitBeam) {
-                        newBeams.insert(std::make_pair(newPos, move));
-                        tiles.insert(newPos); // may be already present
+                        bool firstTimeInThisPropagate
+                            = (!split) || beamsSplitAlready.insert(newBeam).second;
+                        bool firstTimeEver = (!split) || beamsSplittEver.insert(newBeam).second;
 
-                        if ((newPos.x >= nCols) || (newPos.y >= lines.size())) {
-                            tilesPrint[newPos.y][newPos.x] = '#';
-                        }
-
+                        tiles.insert(newPos);
                         tilesPrint[newPos.y][newPos.x] = '#';
-                    }
+                        nextTilesForBeamSplit[beamOrg].insert(newPos);
+                        // even in case of 'split', newPos is still recorded as a tile
+                        // proceeding as effect of tileOrg and then the next tiles will
+                        // be recorded as proceeding (in turn) from newBeamOrg.
 
-                    if (!splitBeam) {
-                        break;
+                        // if (const auto it = tilesSplitIsVert.find(tileOrg); it !=
+                        // tilesSplitIsVert.end())
+                        if (split) { // means that tileOrg is in tilesSplitIsVert.
+                            nextSplitBeamsForBeamSplit[beamOrg].insert(newBeam);
+                        }
+
+                        if (firstTimeInThisPropagate) { // otherwise: may avoid to repeat.
+                            if (!firstTimeEver) {
+                                // may reuse the information from nextTilesForBeam
+                                // and nextSplitBeamsForBeamSplit.
+                                // It is also possible that nextTilesForBeam and
+                                // nextSplitBeamsForBeamSplit are not yet complete, but this means
+                                // that some produced beams are still 'running', therefore no loss o
+                                // information comes from using nextTilesForBeam and
+                                // nextSplitBeamsForBeamSplit.
+
+                                auto nextTilesCopy
+                                    = nextTilesForBeamSplit[newBeamOrg]; // need a copy.
+                                for (const auto& tile : nextTilesCopy) {
+                                    tilesPrint[tile.y][tile.x] = '#';
+                                }
+                                tiles.merge(nextTilesCopy);
+                                const auto& nextSplitBeams
+                                    = nextSplitBeamsForBeamSplit[newBeamOrg]; // need a copy
+                                for (const auto& nextBeam : nextSplitBeams) {
+                                    newBeamsAndOrgBeamSplit.insert(
+                                        std::make_pair(nextBeam, nextBeam));
+                                }
+                            } else {
+                                newBeamsAndOrgBeamSplit.insert(std::make_pair(newBeam, newBeamOrg));
+                            }
+                        }
                     }
-                    move = move2;
                 }
             }
 
-            auto oldSize = beamsHistory.size();
-            beams = newBeams; // copied, not moved
-            // beamsHistory.merge(newBeams);
-            for (auto beam : newBeams) {
-                beamsHistory.insert(beam);
-            }
-
-            if (beamsHistory.size() == oldSize) {
-                break;
-            }
+            beamsAndOrgBeamSplit = std::move(newBeamsAndOrgBeamSplit); // copied, not moved
         }
 
-        // printTiles();
+        // clean information for dummyBeam, otherwise next call with a different initBeam
+        // will wrongly use the same tile passed starting from initBeam.
+        nextTilesForBeamSplit.erase(dummyBeam);
+        nextSplitBeamsForBeamSplit.erase(dummyBeam);
 
-        {
-            size_t tilesCount = 0U;
-
-            for (const auto& tilesPrintRow : tilesPrint) {
-                tilesCount += static_cast<size_t>(std::count_if(
-                    tilesPrintRow.cbegin(), tilesPrintRow.cend(), [](const char ch) {
-                        return (ch == '#');
-                    }));
-            }
-
-            if (tilesCount != tiles.size()) {
-                throw std::runtime_error("failed tiles count confirmation");
-            }
-        }
-    
         return tiles.size();
     };
 
@@ -460,6 +585,7 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
             bestPoint = Point{rowsLength - 1U, y};
         }
     }
+
 
     for (Coord x = 0U; x < rowsLength; ++x) {
         auto newV = propagate(Beam{Point{x, 0U}, Dir::Down});
@@ -514,12 +640,10 @@ example:
 Lines count 10
 Max energized tiles 51
 When from (3,0)
-Result: 51
 
 real input:
 Lines count 110
 Max energized tiles 8444
 When from (109,36)
-Result: 8444
 */
 

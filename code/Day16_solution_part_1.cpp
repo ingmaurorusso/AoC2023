@@ -221,10 +221,14 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
                 errorLine + "line with length different from previous ones");
         }
 
-        if (!std::accumulate(line.cbegin(), line.cend(), true, [](bool acc, const char ch) {
-                static std::string accepted = "|-\\/.";
-                return acc && (accepted.find(ch) != std::string::npos);
-            })) {
+        if (std::find_if_not(
+                line.cbegin(),
+                line.cend(),
+                [](const char ch) {
+                    static const std::string accepted = "|-\\/.";
+                    return (accepted.find(ch) != std::string::npos);
+                })
+            != line.cend()) {
             throw std::invalid_argument(errorLine + "line with unexpected chars");
         }
 
@@ -402,10 +406,13 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
 
         auto oldSize = beamsHistory.size();
-        beams = newBeams; // copied, not moved
+        beams.clear();
         // beamsHistory.merge(newBeams);
-        for (auto beam : newBeams) {
-            beamsHistory.insert(beam);
+        for (auto& newBeam : newBeams) {
+            if (beamsHistory.insert(newBeam).second) {
+                // the new one is also inserted in 'beams'
+                beams.emplace(std::move(newBeam));
+            }
         }
 
         if (beamsHistory.size() == oldSize) {
