@@ -343,7 +343,7 @@ auto day09Part1(std::string_view streamSource, bool sourceIsFilePath)
             // std::cout << "Addend for history val: " << sequence.back() << '\n';
         }
 
-        long historyVal = std::accumulate(lastInSequences.begin(), lastInSequences.end(), 0L);
+        long historyVal = std::accumulate(lastInSequences.cbegin(), lastInSequences.cend(), 0L);
         // std::cout << "History val : " << historyVal << "\n\n";
 
         sum += historyVal;
@@ -352,11 +352,11 @@ auto day09Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "n. of history " << historyCount << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
     return sum;
 }
 
-int main()
+int main09p1()
 {
     try {
         day09Part1(Input, false);

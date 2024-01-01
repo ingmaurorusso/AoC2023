@@ -1,3 +1,5 @@
+#include "Day02.hpp"
+
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -164,7 +166,7 @@ bool toUnsigned(const std::string& s, unsigned long& res) {
 
 } // namespace
 
-auto day02Part1(std::string_view streamSource, bool sourceIsFilePath)
+unsigned long day02Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
     std::shared_ptr<std::istream> inputStream;
 
@@ -332,12 +334,12 @@ auto day02Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of (non-total) colors: " << nTotalColors << std::endl;
     std::cout << "N. of (non-total) extractions: " << nTotalExtractions << std::endl;
     std::cout << "N. of zero-value numbers: " << nZeroNumbers << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
 
     return sum;
 }
 
-int main()
+int main02p1()
 {
     try{
         day02Part1(Input, false);

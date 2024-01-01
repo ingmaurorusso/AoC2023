@@ -775,15 +775,14 @@ auto day18Part1(std::string_view streamSource, bool sourceIsFilePath)
         return true;
     };
 
-    static const auto printLines = [](const std::vector<std::string>& cLines) {
-        /* enable for visual watch.
+    /*static const auto printLines = [](const std::vector<std::string>& cLines) {
+        enable for visual watch.
         std::cout << "\n";
         for(const auto& line : cLines){
             std::cout << line << std::endl;
         }
         std::cout << "\n\n";
-        */
-    };
+    };*/
 
     static const auto getTurn = [](Dir prevDir, Dir nextdir, bool avoidTurnWarn = false) {
         bool turnWarn = false;
@@ -1109,8 +1108,8 @@ auto day18Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     linesDir[startY][startX] = getTurn(oldDir, firstDir);
 
-    printLines(lines);
-    printLines(linesDir);
+    // printLines(lines);
+    // printLines(linesDir);
 
     --cubes; // startP was counted twice
     std::cout << "Digged cubes " << cubes << std::endl;
@@ -1123,9 +1122,9 @@ auto day18Part1(std::string_view streamSource, bool sourceIsFilePath)
         auto& line = lines[y];
         bool inUp = false;
         bool inDown = false;
-        for (Coord x = 0U; x < nCols; ++x) {
 
-            Point p{x, y};
+        Point p{0u,0U};
+        for (; p.x < nCols; ++p.x) {
             const auto excMsg = [&p](std::string head, char ch) {
                 head.append(" at ");
                 head.append(pointToStr(p));
@@ -1135,11 +1134,11 @@ auto day18Part1(std::string_view streamSource, bool sourceIsFilePath)
                 return head; // moves
             };
 
-            const auto ch = lineDir[x];
+            const auto ch = lineDir[p.x];
             switch (ch) {
             case '.':
                 if (inUp || inDown) {
-                    line[x] = '#';
+                    line[p.x] = '#';
                     ++cubes;
                 }
                 break;
@@ -1229,17 +1228,17 @@ auto day18Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    printLines(lines);
-    printLines(linesDir);
+    // printLines(lines);
+    // printLines(linesDir);
 
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "start Point " << pointToStr(startP) << std::endl;
-    std::cout << "\nResult: " << cubes << std::endl;
+    std::cout << "\nResult: " << cubes << "\n\n\n";
 
     return cubes;
 }
 
-int main()
+int main18p1()
 {
     try {
         day18Part1(Input, false);

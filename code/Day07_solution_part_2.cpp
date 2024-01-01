@@ -1384,12 +1384,12 @@ auto day07Part2(std::string_view streamSource, bool sourceIsFilePath)
             return acc + (hr.second * i);
         });
 
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
 
     return res;
 }
 
-int main()
+int main07p2()
 {
     try {
         day07Part2(Input, false);

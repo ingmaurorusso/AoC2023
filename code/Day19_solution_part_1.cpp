@@ -1166,9 +1166,7 @@ auto day19Part1(std::string_view streamSource, bool sourceIsFilePath)
             ++acceptedParts;
 
             Value partial = std::accumulate(
-                std::begin(part), std::end(part), 0U, [](const auto acc, const auto val) {
-                    return acc + val;
-                });
+                std::begin(part), std::end(part), 0U );
 
             if (partial > std::numeric_limits<Value>::max() - res) {
                 throw std::runtime_error("Type Value to be enlarged");
@@ -1184,11 +1182,11 @@ auto day19Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Workflow count " << workflows.size() << std::endl;
     std::cout << "Rule count " << ruleCount << std::endl;
     std::cout << "Accepted parts n. " << acceptedParts << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main19p1()
 {
     try {
         day19Part1(Input, false);

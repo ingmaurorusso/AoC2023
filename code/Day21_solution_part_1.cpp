@@ -176,10 +176,10 @@ struct Point {
     Coord x;
     Coord y;
 };
-bool operator==(const Point& p1, const Point& p2)
+/*bool operator==(const Point& p1, const Point& p2)
 {
     return (p1.x == p2.x) && (p1.y == p2.y);
-}
+}*/
 
 bool operator<(const Point& p1, const Point& p2)
 {
@@ -188,7 +188,7 @@ bool operator<(const Point& p1, const Point& p2)
     }
     return (p1.x < p2.x);
 }
-bool operator!=(const Point& p1, const Point& p2)
+/*bool operator!=(const Point& p1, const Point& p2)
 {
     return !(p1 == p2);
 }
@@ -196,7 +196,7 @@ std::string pointToStr(Point p)
 {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ')';
-}
+}*/
 
 enum class Direction : unsigned { Right, Down, Left, Up };
 
@@ -206,24 +206,6 @@ template<typename E>
 constexpr auto toUnderlying(const E e) noexcept
 {
     return static_cast<std::underlying_type_t<E>>(e);
-}
-
-std::string dirToStr(Direction d)
-{
-    using std::literals::string_literals::operator""s;
-    switch (d) {
-    case Direction::Right:
-        return "Right";
-    case Direction::Down:
-        return "DownUp";
-    case Direction::Left:
-        return "Left";
-    case Direction::Up:
-        return "Up";
-    default:
-        throw std::runtime_error(
-            "Inconsistent direction to print: "s + std::to_string(toUnderlying(d)));
-    }
 }
 
 } // namespace
@@ -388,7 +370,7 @@ auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::set<Point> points; // TODO: unordered
     points.insert(startP);
 
-    const auto printPoints = [&cLines, &startP](const auto& prPoints) {
+    /*const auto printPoints = [&cLines, &startP](const auto& prPoints) {
         auto linesCopy = cLines;
         linesCopy[startP.y][startP.x] = '.';
 
@@ -400,7 +382,7 @@ auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
             std::cout << line << '\n';
         }
         std::cout << '\n';
-    };
+    };*/
 
     constexpr PosCount NumSteps = 64U;
 
@@ -433,12 +415,12 @@ auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. field cols " << nCols << std::endl;
     std::cout << "Rock count " << rocksInBasicField << std::endl;
     std::cout << "Total tiles passed on or reached " << allPoints.size() << std::endl;
-    std::cout << "Result: " << points.size() << std::endl;
+    std::cout << "Result: " << points.size() << "\n\n\n";
 
     return points.size();
 }
 
-int main()
+int main21p1()
 {
     try {
         day21Part1(Input, false);

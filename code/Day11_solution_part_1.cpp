@@ -257,20 +257,20 @@ auto day11Part1(std::string_view streamSource, bool sourceIsFilePath)
             throw std::invalid_argument(errorLine + "line length different from previous ones");
         }
 
-        Coord y = lineCount;
+        Point p{1U,lineCount};
         bool emptyRow = true;
-        for (Coord x = 1U; x <= line.length(); ++x) {
-            const auto ch = line[x - 1U];
+        for (; p.x <= line.length(); ++p.x) {
+            const auto ch = line[p.x - 1U];
             if (ch == '#') {
-                galaxies.insert(Point{x, y});
+                galaxies.insert(p);
 
-                nonEmptyCols.insert(x);
+                nonEmptyCols.insert(p.x);
                 emptyRow = false;
             }
         }
 
         if (!emptyRow) {
-            nonEmptyRows.insert(y);
+            nonEmptyRows.insert(p.y);
         }
     }
 
@@ -336,7 +336,7 @@ auto day11Part1(std::string_view streamSource, bool sourceIsFilePath)
     return sumDist;
 }
 
-int main()
+int main11p1()
 {
     try {
         day11Part1(Input, false);

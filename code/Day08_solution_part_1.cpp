@@ -911,11 +911,10 @@ auto day08Part1(std::string_view streamSource, bool sourceIsFilePath)
                 }
             }
 
-            if (!network.insert(
-                std::make_pair(
+            if (!network.emplace(
                     std::move(node),
                     std::make_pair(std::move(left), std::move(right))
-                )).second){ // node already existing
+                ).second){ // node already existing
                 throw std::invalid_argument(errorLine + "repeated sequence");
             };
         }
@@ -962,12 +961,12 @@ auto day08Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    std::cout << "\nResult: " << stepCount << std::endl;
+    std::cout << "\nResult: " << stepCount << "\n\n\n";
 
     return stepCount;
 }
 
-int main()
+int main08p1()
 {
     try {
         day08Part1(Input, false);

@@ -420,7 +420,7 @@ auto day05Part1(std::string_view streamSource, bool sourceIsFilePath)
 
             translation[source] = std::make_pair(dest, range);
             auto it
-                = ptrStat->insert(std::make_pair(source, std::make_pair(dest, range))).first;
+                = ptrStat->emplace(source, std::make_pair(dest, range)).first;
             if (it != ptrStat->begin()) {
                 --it;
                 if (it->first + it->second.second > source) {
@@ -510,11 +510,11 @@ auto day05Part1(std::string_view streamSource, bool sourceIsFilePath)
     if (currentDest.empty()) {
         throw std::invalid_argument("No final position!");
     }
-    std::cout << "\nResult: " << *currentDest.begin() << std::endl;
-    return *currentDest.begin();
+    std::cout << "\nResult: " << *currentDest.cbegin() << "\n\n\n";
+    return *currentDest.cbegin();
 }
 
-int main()
+int main05p1()
 {
     try {
         day05Part1(Input, false);

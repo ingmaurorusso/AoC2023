@@ -473,8 +473,9 @@ auto day23Part2(std::string_view streamSource, bool sourceIsFilePath, bool runPa
 
     // preliminary search points with more than two near points.
     std::set<Point> allKnownKnotPoints; // unordered
-    for (Coord x = 0; x < nCols; ++x) {
-        Point p{x, 0U};
+    Point p{0U, 0U};
+    for (; p.x < nCols; ++p.x) {
+        p.y = 0U;
         for (; p.y < nRows; ++p.y) {
             if (lines[p.y][p.x] != '#') {
                 unsigned count = 0U;
@@ -727,11 +728,11 @@ auto day23Part2(std::string_view streamSource, bool sourceIsFilePath, bool runPa
         scrollIdx = nextIdx;
     } while (scrollIdx != goalIdx);
     std::cout << pointToStr(goalP) << '\n';
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main23p2()
 {
     try {
         day23Part2(Input, false, false);

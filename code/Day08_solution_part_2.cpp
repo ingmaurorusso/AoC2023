@@ -961,9 +961,8 @@ auto day08Part2(std::string_view streamSource, bool sourceIsFilePath)
             }
             nodeList.push_back(node);
 
-            if (!network
-                        .insert(std::make_pair(
-                            node, std::make_pair(std::move(left), std::move(right))))
+            if (!network.emplace(
+                            node, std::make_pair(std::move(left), std::move(right)))
                         .second) { // node already existing
                 throw std::invalid_argument(errorLine + "repeated sequence");
             };
@@ -1356,11 +1355,11 @@ auto day08Part2(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    std::cout << "\nResult: " << stepCount << std::endl;
+    std::cout << "\nResult: " << stepCount << "\n\n\n";
     return stepCount;
 }
 
-int main()
+int main08p2()
 {
     try {
         day08Part2(Input, false);

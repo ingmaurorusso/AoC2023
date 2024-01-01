@@ -296,7 +296,7 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     constexpr size_t Two = 2U;
 
-    static const auto rotateDir = [](Dir& dir, bool clockwise = true) {
+    /*static const auto rotateDir = [](Dir& dir, bool clockwise = true) {
         switch (dir) {
         case Dir::Down:
             dir = clockwise ? Dir::Left : Dir::Right;
@@ -323,7 +323,7 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
         default:
             return false;
         }
-    };
+    };*/
 
     const auto movePoint = [nRows, nCols](Point& p, Dir d) {
         bool ok = true;
@@ -550,7 +550,7 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
                                         std::make_pair(nextBeam, nextBeam));
                                 }
                             } else {
-                                newBeamsAndOrgBeamSplit.insert(std::make_pair(newBeam, newBeamOrg));
+                                newBeamsAndOrgBeamSplit.emplace(newBeam, newBeamOrg);
                             }
                         }
                     }
@@ -571,33 +571,38 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
     size_t maxConfig = 0U;
     Point bestPoint{};
 
-    for (Coord y = 0U; y < lines.size(); ++y) {
-        auto newV = propagate(Beam{Point{0U, y}, Dir::Right});
+    Point p{0U,0U};
+    for (; p.y < lines.size(); ++p.y) {
+        p.x = 0U;
+        auto newV = propagate(Beam{p, Dir::Right});
         if (newV > maxConfig) {
             maxConfig = newV;
-            bestPoint = Point{0U, y};
+            bestPoint = p;
         }
         // break;
 
-        newV = propagate(Beam{Point{rowsLength - 1U, y}, Dir::Left});
+        p.x = rowsLength - 1U;
+        newV = propagate(Beam{p, Dir::Left});
         if (newV > maxConfig) {
             maxConfig = newV;
-            bestPoint = Point{rowsLength - 1U, y};
+            bestPoint = p;
         }
     }
 
-
-    for (Coord x = 0U; x < rowsLength; ++x) {
-        auto newV = propagate(Beam{Point{x, 0U}, Dir::Down});
+    p.x = 0U;
+    for (; p.x < rowsLength; ++p.x) {
+        p.y = 0U;
+        auto newV = propagate(Beam{p, Dir::Down});
         if (newV > maxConfig) {
             maxConfig = newV;
-            bestPoint = Point{x, 0U};
+            bestPoint = p;
         }
 
-        newV = propagate(Beam{Point{x, lines.size() - 1U}, Dir::Up});
+        p.y = lines.size()-1U;
+        newV = propagate(Beam{p, Dir::Up});
         if (newV > maxConfig) {
             maxConfig = newV;
-            bestPoint = Point{x, lines.size() - 1U};
+            bestPoint = p;
         }
     }
 
@@ -606,11 +611,11 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "When from " << pointToStr(bestPoint) << std::endl;
     // TODO: specify direction in case of corner bestPoint.
 
-    std::cout << "Result: " << maxConfig << std::endl;
+    std::cout << "Result: " << maxConfig << "\n\n\n";
     return maxConfig;
 }
 
-int main()
+int main16p2()
 {
     try {
         day16Part2(Input, false);

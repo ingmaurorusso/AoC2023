@@ -361,7 +361,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
 
                             if (source > start) {
                                 // first part not overlapped
-                                newDest.insert(std::make_pair(start, source - start));
+                                newDest.emplace(start, source - start);
 
                                 // std::cout << "break A (" << start << "," << len << ") as ("
                                 //           << start << "," << source-start << ")" <<
@@ -372,8 +372,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
                             auto newStart = std::max(start, source);
                             auto newEnd = std::min(start + len, source + range);
 
-                            newDest.insert(
-                                std::make_pair((newStart - source) + dest, newEnd - newStart));
+                            newDest.emplace((newStart - source) + dest, newEnd - newStart);
 
                             // std::cout << "break B (" << start << "," << len << ") as ("
                             //             << ((newStart - source) + dest) << "," <<
@@ -399,7 +398,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
 
                 if (len > 0) {
                     // Final residual part, not to be translated
-                    newDest.insert(std::make_pair(start, len));
+                    newDest.emplace(start, len);
 
                     // std::cout << "break C (" << start << "," << len << ")" << std::endl;
                 }
@@ -487,7 +486,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
 
             translation[source] = std::make_pair(dest, range);
             auto it
-                = ptrStat->insert(std::make_pair(source, std::make_pair(dest, range))).first;
+                = ptrStat->emplace(source, std::make_pair(dest, range)).first;
             if (it != ptrStat->begin()) {
                 --it;
                 if (it->first + it->second.second > source) {
@@ -517,7 +516,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
                 }
 
                 // currentDest[seedStart] = seedRange;
-                auto it = currentDest.insert(std::make_pair(seedStart, seedRange)).first;
+                auto it = currentDest.emplace(seedStart, seedRange).first;
                 if (it != currentDest.begin()) {
                     --it;
                     if (it->first + it->second > seedStart) {
@@ -609,11 +608,11 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
     if (currentDest.empty()) {
         throw std::invalid_argument("No final position!");
     }
-    std::cout << "\nResult: " << currentDest.begin()->first << std::endl;
-    return currentDest.begin()->first;
+    std::cout << "\nResult: " << currentDest.cbegin()->first << "\n\n\n";
+    return currentDest.cbegin()->first;
 }
 
-int main()
+int main05p2()
 {
     try {
         day05Part2(Input, false);

@@ -683,11 +683,11 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
     if (minPath == 0U) {
         throw std::invalid_argument("Impossible to reach bottom-right from top-left!");
     }
-    std::cout << "\nResult: " << minPath << std::endl;
+    std::cout << "\nResult: " << minPath << "\n\n\n";
     return minPath;
 }
 
-int main()
+int main17p1()
 {
     try {
         day17Part1(Input, false);

@@ -1502,7 +1502,7 @@ bool operator==(const Point& p1, const Point& p2)
 {
     return (p1.x == p2.x) && (p1.y == p2.y);
 }
-bool operator<(const Point& p1, const Point& p2)
+/*bool operator<(const Point& p1, const Point& p2)
 {
     if (p1.y != p2.y) {
         return (p1.y < p2.y);
@@ -1516,17 +1516,17 @@ bool operator!=(const Point& p1, const Point& p2)
 std::string pointToStr(Point p) {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ')';
-}
+}*/
 
 struct Point3 {
     Coord x;
     Coord y;
     Coord z;
 };
-bool operator==(const Point3& p1, const Point3& p2)
+/*bool operator==(const Point3& p1, const Point3& p2)
 {
     return (p1.x == p2.x) && (p1.y == p2.y) && (p1.z == p2.z);
-}
+}*/
 
 bool operator<(const Point3& p1, const Point3& p2)
 {
@@ -1541,11 +1541,11 @@ bool operator<(const Point3& p1, const Point3& p2)
 /*bool operator!=(const Point3& p1, const Point3& p2)
 {
     return !(p1 == p2);
-}*/
+}
 std::string point3ToStr(Point3 p) {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ", " + std::to_string(p.z) + ')';
-}
+}*/
 
 bool toUnsigned(const std::string& s, unsigned long& res) {
     try {
@@ -1611,9 +1611,9 @@ auto day22Part2(std::string_view streamSource, bool sourceIsFilePath)
     using Count = unsigned long;
 
     using Brick = std::array<Point3, 2U>; // assumed pre-sorted
-    static const auto brickToStr = [](const Brick& brick) {
+    /*static const auto brickToStr = [](const Brick& brick) {
         return point3ToStr(brick.at(0)) + '~' + point3ToStr(brick.at(1));
-    };
+    };*/
 
     /*static const auto hashBrick = [](const Brick & brick){
         return brick.at(0).x * 100000UL + brick.at(0).y * 100000L + brick.at(0).z * 1000UL +
@@ -1918,13 +1918,13 @@ auto day22Part2(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     // std::cout << "Total tiles passed on or reached " << points.size() << std::endl;
     // std::cout << "Total tiles reachable exactly " << points.size() << std::endl;
     return res;
 }
 
-int main()
+int main22p2()
 {
     try {
         day22Part2(Input, false);

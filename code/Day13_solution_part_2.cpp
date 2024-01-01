@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <exception>
 #include <fstream>
@@ -1688,8 +1689,8 @@ auto day13Part2(std::string_view streamSource, bool sourceIsFilePath)
         } else {
             ++nonEmptyLines;
 
-            if (!std::accumulate(line.cbegin(), line.cend(), true, [](bool acc, char ch) {
-                    return acc && ((ch == '.') || (ch == '#'));
+            if (!std::all_of(line.cbegin(), line.cend(), [](const char ch) {
+                    return (ch == '.') || (ch == '#');
                 })) {
                 throw std::invalid_argument(errorLine + "line with unexpected characters");
             }
@@ -1713,12 +1714,12 @@ auto day13Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Number of lines " << lineCount << std::endl;
     std::cout << "Total non-empty lines " << nonEmptyLines << std::endl;
     std::cout << "Total patterns " << patternCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
 
     return res;
 }
 
-int main()
+int main13p2()
 {
     try {
         day13Part2(Input, false);

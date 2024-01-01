@@ -1,3 +1,5 @@
+#include "Day01.hpp"
+
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -1035,7 +1037,7 @@ enum class Direction {Front, Back};
 
 } // namespace
 
-auto day01Part2(std::string_view streamSource, bool sourceIsFilePath)
+unsigned long day01Part2(std::string_view streamSource, bool sourceIsFilePath)
 {
     std::shared_ptr<std::istream> inputStream;
 
@@ -1156,12 +1158,12 @@ auto day01Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of lines with first chars: " << lineCountFirstChars << std::endl;
     std::cout << "N. of lines with last chars: " << lineCountLastChars << std::endl;
     std::cout << "N. of lines with both chars: " << lineCountBothChars << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
 
     return sum;
 }
 
-int main()
+int main01p2()
 {
     try {
         day01Part2(Input, false);

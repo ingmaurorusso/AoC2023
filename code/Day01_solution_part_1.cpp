@@ -1,3 +1,5 @@
+#include "Day01.hpp"
+
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -1026,8 +1028,11 @@ false?
 
 bool toUnsigned(const std::string& s, unsigned long& res) {
     try {
-        if (!std::accumulate(std::next(s.cbegin()), s.cend(), true, [](bool acc, const char ch) {
-                return acc & std::isdigit(ch); // avoid '-' in order to allow '-0'.
+        if (s.empty()) {
+            return false;
+        }
+        if (!std::all_of(std::next(s.cbegin()), s.cend(), [](const char ch) {
+                return std::isdigit(ch); // avoid first, with '-' in order to allow '-0'.
             })) {
             // stoul would ignore tailing non-digits.
             // Here ignore first char, that is, allowing '-' (specific check later for future use).
@@ -1053,7 +1058,7 @@ bool toUnsigned(const std::string& s, unsigned long& res) {
 
 } // namespace
 
-auto day01Part1(std::string_view streamSource, bool sourceIsFilePath)
+unsigned long day01Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
     std::shared_ptr<std::istream> inputStream;
 
@@ -1111,12 +1116,12 @@ auto day01Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of lines with one digit only: " << lineCountOneDigit << std::endl;
     std::cout << "N. of lines with value zero: " << lineCountZero << std::endl;
     std::cout << "N. of lines with leading zero: " << lineCountLeadingZero << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
 
     return sum;
 }
 
-int main()
+int main01p1()
 {
     try {
         day01Part1(Input, false);

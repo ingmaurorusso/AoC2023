@@ -1231,11 +1231,11 @@ auto day18Part2(std::string_view streamSource, bool sourceIsFilePath)
                 throw std::runtime_error("generalize for back and forth");
             }*/
 
-            auto traitDirCopy = traitDir;
+            const auto traitDirCopy = traitDir;
             // traitDirCopy.firstChar = wait next move to set it.
             mapTraits.erase(it);
 
-            const auto [itNew, _/*ok*/] = mapTraits.insert(std::make_pair(newP.x, traitDirCopy));
+            const auto [itNew, _/*ok*/] = mapTraits.emplace(newP.x, traitDirCopy);
 
             /*if (!ok) {
                 throw std::runtime_error("overlap: generalize for crosses");
@@ -1513,7 +1513,7 @@ auto day18Part2(std::string_view streamSource, bool sourceIsFilePath)
     return cubes;
 }
 
-int main()
+int main18p2()
 {
     try {
         day18Part2(Input, false);

@@ -1795,13 +1795,13 @@ auto day21Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Rock count " << rocksInBasicField << std::endl;
     std::cout << "N. field rows " << nRows << std::endl;
     std::cout << "N. field cols " << nCols << std::endl;
-    std::cout << "Result: " << res << std::endl;
+    std::cout << "Result: " << res << "\n\n\n";
     // std::cout << "Total tiles passed on or reached " << points.size() << std::endl;
     // std::cout << "Total tiles reachable exactly " << points.size() << std::endl;
     return res;
 }
 
-int main()
+int main21p2()
 {
     try {
         day21Part2(Input, false);

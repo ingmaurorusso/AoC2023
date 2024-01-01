@@ -1038,10 +1038,10 @@ struct Point{
     Coord x;
     Coord y;
 };
-bool operator==(const Point p1, const Point p2){
+/*bool operator==(const Point p1, const Point p2){
     return (p1.x == p2.x) && (p1.y == p2.y);
 }
-/*bool operator!=(const Point p1, const Point p2){
+bool operator!=(const Point p1, const Point p2){
     return !(p1 == p2);
 }*/
 
@@ -1332,12 +1332,12 @@ auto day12Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
 
     return res;
 }
 
-int main()
+int main12p1()
 {
     try {
         day12Part1(Input, false);

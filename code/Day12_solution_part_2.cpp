@@ -1522,9 +1522,7 @@ auto day12Part2(std::string_view streamSource, bool sourceIsFilePath)
                 return acc + gr.max;
             });
         sumResidualLen = std::accumulate(
-            groupsLen.cbegin(), groupsLen.cend(), 0U, [](const Length acc, const Length len) {
-                return acc + len;
-            });
+            groupsLen.cbegin(), groupsLen.cend(), 0U);
 
         auto combCount = combCounting(groupsLen.begin(), groups.begin(), false);
 
@@ -1535,11 +1533,11 @@ auto day12Part2(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main12p2()
 {
     try {
         day12Part2(Input, false);

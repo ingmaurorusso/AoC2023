@@ -200,7 +200,7 @@ auto day03Part1(std::string_view streamSource, bool sourceIsFilePath)
 	std::set<size_t> prevSymbols;
 
 	unsigned lineCount{0U};
-	std::string line;
+
 	constexpr auto MaxLineLength = 1000;
 	std::array<char, MaxLineLength + 1> cc{};
 	while (inputStream->getline(cc.data(), MaxLineLength, '\n')) {
@@ -330,13 +330,13 @@ auto day03Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of leading zero: " << nLeadingZeros << std::endl;
     std::cout << "N. of zero values: " << nZeroValues << std::endl;
     std::cout << "N. of total positive values: " << nTotalPositiveValues << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
 
     return sum;
 }
 
 
-int main()
+int main03p1()
 {
     try {
         day03Part1(Input, false);

@@ -330,7 +330,7 @@ auto day03Part2(std::string_view streamSource, bool sourceIsFilePath)
                         }
                     }
 
-                    stars.insert(std::make_pair(p, values)); // insert back
+                    stars.emplace(p, std::move(values)); // insert back
                 }
 
                 v = 0U;
@@ -354,12 +354,12 @@ auto day03Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of leading zero: " << nLeadingZeros << std::endl;
     std::cout << "N. of zero values: " << nZeroValues << std::endl;
     std::cout << "N. of total values: " << nTotalValues << std::endl;
-    std::cout << "\nResult: " << sum << std::endl;
+    std::cout << "\nResult: " << sum << "\n\n\n";
 
     return sum;
 }
 
-int main()
+int main03p2()
 {
     try {
         day03Part2(Input, false);

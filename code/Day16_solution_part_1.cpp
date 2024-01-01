@@ -243,13 +243,13 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
         tilesPrint.emplace_back(nCols, '.');
     }
 
-    const auto printTiles = [&tilesPrint]() {
+    /*const auto printTiles = [&tilesPrint]() {
         std::cout << "\n\n";
         for (const auto& tilesPrintRow : tilesPrint) {
             std::cout << tilesPrintRow << std::endl;
         }
         std::cout << "\n\n";
-    };
+    };*/
 
     using Dir = Direction;
     using Beam = std::pair<Point, Direction>;
@@ -258,7 +258,7 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::set<Point> tiles;
 
     if (nRows > 0U) {
-        beams.insert(std::make_pair(Point{0, 0}, Dir::Right));
+        beams.emplace(Point{0, 0}, Dir::Right);
         tiles.insert(Point{0, 0});
         tilesPrint[0][0] = '#';
     }
@@ -388,7 +388,7 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
                 }
 
                 if (!exitBeam) {
-                    newBeams.insert(std::make_pair(newPos, move));
+                    newBeams.emplace(newPos, move);
                     tiles.insert(newPos); // may be already present
 
                     if ((newPos.x >= nCols) || (newPos.y >= nRows)) {
@@ -438,12 +438,12 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "Result: " << tiles.size() << std::endl;
+    std::cout << "Result: " << tiles.size() << "\n\n\n";
 
     return tiles.size();
 }
 
-int main()
+int main16p1()
 {
     try {
         day16Part1(Input, false);

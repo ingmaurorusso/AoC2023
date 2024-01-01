@@ -113,7 +113,7 @@ constexpr auto toUnderlying(const E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-std::string moduleTypeToStr(ModuleType mt)
+/*std::string moduleTypeToStr(ModuleType mt)
 {
     using std::literals::string_literals::operator""s;
     switch (mt) {
@@ -129,7 +129,7 @@ std::string moduleTypeToStr(ModuleType mt)
         throw std::runtime_error(
             "Inconsistent module type to print: "s + std::to_string(toUnderlying(mt)));
     }
-}
+}*/
 
 bool charToModuleType(const char ch, ModuleType& mt)
 {
@@ -269,7 +269,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
             throw std::invalid_argument(errorLine + "unexpected module name: " + moduleName);
         }
 
-        auto [itM, ok] = modules.insert(std::make_pair(moduleName, Module{mt, Destinations{}}));
+        auto [itM, ok] = modules.emplace(moduleName, Module{mt, Destinations{}});
         if (!ok) {
             // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
             throw std::invalid_argument(errorLine + "repeated module name: " + moduleName);
@@ -279,7 +279,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
             ffStates[itM] = false; // initial low state
         }
         if (mt == ModuleType::Conjunction) {
-            tmpConjSet.insert(moduleName);
+            tmpConjSet.emplace(std::move(moduleName));
         }
 
         std::string arrow;
@@ -360,7 +360,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
                     }
 
                     const auto [itStates, ok]
-                        = conjInStates.insert(std::make_pair(itC, ModulesState(1U, hashItM)));
+                        = conjInStates.emplace(itC, ModulesState(1U, hashItM));
                     itStates->second[itM] = false; // initial low state-in.
                 } /* it is accepted, as in the first example. The last-time pulse works.
                     else{
@@ -690,7 +690,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
                     if (!pulseOut) {
                         if (dest == wantedLow) {
                             std::cout << "low pulse to " << wantedLow << std::endl;
-                            std::cout << "\nResult: " << currentCycleCount << std::endl;
+                            std::cout << "\nResult: " << currentCycleCount << "\n\n\n";
                             //TODO: generalize the code! A low pulse does not mean a single low pulse,
                             //add code to check one only.
                             return currentCycleCount;
@@ -908,7 +908,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
     throw std::invalid_argument("Impossible");
 }
 
-int main()
+int main20p2()
 {
     try {
         day20Part2(Input, false);

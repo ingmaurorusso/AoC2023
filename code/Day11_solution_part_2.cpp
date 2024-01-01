@@ -347,7 +347,7 @@ auto day11Part2(std::string_view streamSource, bool sourceIsFilePath)
     return sumDist;
 }
 
-int main()
+int main11p2()
 {
     try {
         day11Part2(Input, false);

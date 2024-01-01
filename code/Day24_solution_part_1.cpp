@@ -790,13 +790,13 @@ auto day24Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "Hails count " << nHails << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     // TODO: report the number of special cases: stopped, parallel, etc.
 
     return res;
 }
 
-int main()
+int main24p1()
 {
     try {
         day24Part1(Input, false);

@@ -104,7 +104,7 @@ auto day15Part2(std::string_view streamSource, bool sourceIsFilePath)
     static const auto hashMap = [](const std::string& s) {
         const Value zero = 0U;
         return s.empty() ? zero
-                            : std::accumulate(s.cbegin(), s.cend(), zero, [](auto acc, auto ch) {
+                            : std::accumulate(s.cbegin(), s.cend(), zero, [](auto acc, const auto ch) {
                                 constexpr Value Seed = 17U;
 
                                 acc += static_cast<Value>(ch);
@@ -223,11 +223,11 @@ auto day15Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Number of lines " << lineCount << std::endl;
     std::cout << "Total hash " << hashCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main15p2()
 {
     try {
         day15Part2(Input, false);

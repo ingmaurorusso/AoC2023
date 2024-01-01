@@ -357,11 +357,11 @@ auto day10Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Max loop " << loopMax << std::endl;
 
     auto res = ((loopMax + 1U) / 2);
-    std::cout << "Result: " << res << std::endl;
+    std::cout << "Result: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main10p1()
 {
     try {
         day10Part1(Input, false);

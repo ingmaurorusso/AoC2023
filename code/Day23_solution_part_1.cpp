@@ -213,11 +213,11 @@ bool operator!=(const Point& p1, const Point& p2)
 {
     return !(p1 == p2);
 }
-std::string pointToStr(Point p)
+/*std::string pointToStr(Point p)
 {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ')';
-}
+}*/
 
 enum class Direction : unsigned { Right, Down, Left, Up };
 
@@ -229,7 +229,7 @@ constexpr auto toUnderlying(const E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-std::string dirToStr(Direction d)
+/*std::string dirToStr(Direction d)
 {
     using std::literals::string_literals::operator""s;
     switch (d) {
@@ -245,7 +245,7 @@ std::string dirToStr(Direction d)
         throw std::runtime_error(
             "Inconsistent direction to print: "s + std::to_string(toUnderlying(d)));
     }
-}
+}*/
 
 } // namespace
 
@@ -548,11 +548,11 @@ auto day23Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "Tiles (including arrows) count " << tilesCount << std::endl;
     std::cout << "Arrow count " << arrowCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main23p1()
 {
     try {
         day23Part1(Input, false);

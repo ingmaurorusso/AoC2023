@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <exception>
 #include <fstream>
@@ -511,13 +512,11 @@ auto day14Part2(std::string_view streamSource, bool sourceIsFilePath)
         // std::cout << line << '\n';
         const auto contribute = (lines.size() - i);
 
-        const auto roundCount = std::accumulate(
-            line.cbegin(), line.cend(), static_cast<Value>(0U), [](auto acc, const char ch) {
-                if (ch == 'O') {
-                    ++acc;
-                }
-                return acc;
-            });
+        const auto roundCount =
+        static_cast<Value>(std::count_if(
+            line.cbegin(), line.cend(), [](const char ch) {
+                return (ch == 'O');
+            }));
 
         const auto deltaRes = (contribute * roundCount);
         if (deltaRes > std::numeric_limits<Value>::max() - res) {
@@ -531,11 +530,11 @@ auto day14Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Total round rocks " << totRoundRocks << std::endl;
     std::cout << "firstTimeRepeat " << firstTimeRepeat << std::endl;
     std::cout << "secondTimeRepeat " << secondTimeRepeat << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main14p2()
 {
     try {
         day14Part2(Input, false);

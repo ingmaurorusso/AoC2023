@@ -105,12 +105,12 @@ auto day15Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Number of lines " << lineCount << std::endl;
     std::cout << "Total hash " << hashCount << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
 
     return res;
 }
 
-int main()
+int main15p1()
 {
     try {
         day15Part1(Input, false);

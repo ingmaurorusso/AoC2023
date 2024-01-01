@@ -108,7 +108,7 @@ constexpr auto toUnderlying(const E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-std::string moduleTypeToStr(ModuleType mt)
+/*std::string moduleTypeToStr(ModuleType mt)
 {
     using std::literals::string_literals::operator""s;
     switch (mt) {
@@ -124,7 +124,7 @@ std::string moduleTypeToStr(ModuleType mt)
         throw std::runtime_error(
             "Inconsistent module type to print: "s + std::to_string(toUnderlying(mt)));
     }
-}
+}*/
 
 bool charToModuleType(const char ch, ModuleType &mt)
 {
@@ -258,7 +258,7 @@ auto day20Part1(std::string_view streamSource, bool sourceIsFilePath)
             throw std::invalid_argument(errorLine + "unexpected module name: " + moduleName);
         }
 
-        auto [itM, ok] = modules.insert(std::make_pair(moduleName, Module{mt, Destinations{}}));
+        auto [itM, ok] = modules.emplace(moduleName, Module{mt, Destinations{}});
         if (!ok) {
             throw std::invalid_argument(errorLine + "repeated module name: " + moduleName);
         }
@@ -267,7 +267,7 @@ auto day20Part1(std::string_view streamSource, bool sourceIsFilePath)
             ffStates[itM] = false; // initial low state
         }
         if (mt == ModuleType::Conjunction) {
-            tmpConjSet.insert(moduleName);
+            tmpConjSet.emplace(std::move(moduleName));
         }
 
         std::string arrow;
@@ -572,11 +572,11 @@ auto day20Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Cycle ends at " << cycleEnd << std::endl;
 
     auto res = lowPulseCount * highPulseCount;
-    std::cout << "Result: " << res << std::endl;
+    std::cout << "Result: " << res << "\n\n\n";
     return res;
 }
 
-int main()
+int main20p1()
 {
     try {
         day20Part1(Input, false);

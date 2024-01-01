@@ -1513,11 +1513,11 @@ bool operator!=(const Point& p1, const Point& p2)
 {
     return !(p1 == p2);
 }
-std::string pointToStr(Point p)
+/*std::string pointToStr(Point p)
 {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ')';
-}
+}*/
 
 struct Point3 {
     Coord x;
@@ -1543,12 +1543,12 @@ bool operator<(const Point3& p1, const Point3& p2)
     }
     return (p1.x < p2.x);
 }
-std::string point3ToStr(Point3 p)
+/*std::string point3ToStr(Point3 p)
 {
     using std::literals::string_literals::operator""s;
     return "("s + std::to_string(p.x) + ", " + std::to_string(p.y) + ", " + std::to_string(p.z)
         + ')';
-}
+}*/
 
 bool toUnsigned(const std::string& s, unsigned long& res)
 {
@@ -1806,7 +1806,6 @@ auto day22Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
 
         // bricksBelow is the set of the ones below (after moving if maxZ+1U < z).
-        const auto itBnext = std::next(itB);
         if (maxZ + 1U < z) {
             // may fall down above maxZ, staying on the bricks of bricksBelow.
             const Coord oldZ = z;
@@ -1838,10 +1837,10 @@ auto day22Part1(std::string_view streamSource, bool sourceIsFilePath)
                 brickMoveNextXY(scrollBrickXY);
             }
 
-            bricks.erase(itB);
+            itB = bricks.erase(itB);
+        } else{
+            ++itB;
         }
-
-        itB = itBnext;
     }
 
     std::cout << "Bricks below as single of others : n. " << bricksBelowOthersAsSingle.size()
@@ -1850,13 +1849,13 @@ auto day22Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "Brick count " << bricks.size() << std::endl;
-    std::cout << "\nResult: " << res << std::endl;
+    std::cout << "\nResult: " << res << "\n\n\n";
     // std::cout << "Total tiles passed on or reached " << points.size() << std::endl;
     // std::cout << "Total tiles reachable exactly " << points.size() << std::endl;
     return res;
 }
 
-int main()
+int main22p1()
 {
     try {
         day22Part1(Input, false);

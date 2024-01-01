@@ -601,12 +601,12 @@ auto day10Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Number of lines: " << lineCount << std::endl;
     std::cout << "Start point " << pointToStr(start) << std::endl;
     std::cout << "Max loop " << loopPath.size() << std::endl;
-    std::cout << "\nResult: " << internCount << std::endl;
+    std::cout << "\nResult: " << internCount << "\n\n\n";
 
     return internCount;
 }
 
-int main()
+int main10p2()
 {
     try {
         day10Part2(Input, false);
