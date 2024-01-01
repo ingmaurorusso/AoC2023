@@ -439,6 +439,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
         // std::cout << "line: " << line << '\n';
 
         if (line.empty()) {
+            std::cout << "WARNING: empty line\n";
             continue;
         }
 

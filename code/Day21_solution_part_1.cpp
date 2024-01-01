@@ -264,7 +264,10 @@ auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
 
         if (line.empty()) {
             std::cout << "WARNING: empty line\n";
-        } else if (lines.empty()) {
+            continue;
+        }
+
+        if (lines.empty()) {
             rowsLength = line.size();
         } else if (rowsLength != line.size()) {
             throw std::invalid_argument(errorLine + "line length different from previous ones");

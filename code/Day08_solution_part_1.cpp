@@ -843,7 +843,8 @@ auto day08Part1(std::string_view streamSource, bool sourceIsFilePath)
         std::stringstream lineStream;
         lineStream << line;
 
-        if (line.empty()) { // allow empty lines
+        if (line.empty()) {
+            std::cout << "WARNING: empty line\n";
             continue;
         }
 

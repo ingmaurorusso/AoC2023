@@ -205,10 +205,8 @@ auto day11Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     constexpr size_t SeedHash = 10000U;
     static constexpr auto HashPoints = [](const Point p) { return p.x + (SeedHash * p.y); };
-    static constexpr auto EquiPoints = [](const Point p1, const Point p2) { return p1 == p2; };
 
-    std::unordered_set<Point, decltype(HashPoints), decltype(EquiPoints)> galaxies(
-        0U, HashPoints, EquiPoints);
+    std::unordered_set<Point, decltype(HashPoints)> galaxies(0U, HashPoints);
     std::unordered_set<Coord> nonEmptyRows(0U);
     std::unordered_set<Coord> nonEmptyCols(0U);
 

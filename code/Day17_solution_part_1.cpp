@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace{
@@ -194,22 +195,21 @@ bool operator==(const Point& p1, const Point& p2)
 {
     return (p1.x == p2.x) && (p1.y == p2.y);
 }
-/*
-bool operator<(const Point& p1, const Point& p2)
+/*bool operator<(const Point& p1, const Point& p2)
 {
     if (p1.y != p2.y) {
         return (p1.y < p2.y);
     }
     return (p1.x < p2.x);
-}
+}*/
 bool operator!=(const Point& p1, const Point& p2)
 {
     return !(p1 == p2);
-}*/
+}
 
 enum class Direction : unsigned { Right, Down, Left, Up };
 
-constexpr auto FourDir = 4;
+constexpr auto FourDir = 4U;
 
 template<typename E>
 constexpr auto toUnderlying(const E e) noexcept
@@ -248,7 +248,7 @@ bool operator==(const Move& m1, const Move& m2)
 {
     return (m1.p == m2.p) && (m1.d == m2.d);
 }
-bool operator<(const Move& m1, const Move& m2)
+/*bool operator<(const Move& m1, const Move& m2)
 {
     if (m1.p.y != m2.p.y) {
         return (m1.p.y < m2.p.y);
@@ -260,9 +260,9 @@ bool operator<(const Move& m1, const Move& m2)
         return (m1.equiD < m2.equiD);
     }
     return toUnderlying(m1.d) < toUnderlying(m2.d);
-}
+}*/
 
- } // namespace
+} // namespace
 
 auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
 {
@@ -310,7 +310,9 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
 
         if (line.empty()) {
             std::cout << "WARNING: empty line\n";
-        } else
+            continue;
+        }
+
         if (lines.empty()) {
             rowsLength = line.size();
         } else if (rowsLength != line.size()) {
@@ -338,6 +340,22 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
         return m.p.y * 10000000UL + m.p.x * 10000UL + 10UL * toUnderlying(m.d) + m.equiD;
     };
     const auto equiMove = [](const Move& m1, const Move& m2) { return (m1 == m2); };
+    const auto compMoveBRfirst = [](const Move& m1, const Move& m2) {
+        // This is different from "operator<"
+        if (m1.p != m2.p) {
+            const auto d1 = m1.p.x+m1.p.y;
+            const auto d2 = m2.p.x+m2.p.y;
+            if (d1 != d2){
+                return d1 < d2;
+            }
+            return (m1.p.x < m2.p.x);
+        }
+
+        if (m1.equiD != m2.equiD) {
+            return (m1.equiD < m2.equiD);
+        }
+        return toUnderlying(m1.d) < toUnderlying(m2.d);
+    };
 
     using Length = Coord;
 
@@ -345,8 +363,8 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
         = std::unordered_map<Move, Length, decltype(hashMove), decltype(equiMove)>;
     MoveLengths moveLengths(0U, hashMove, equiMove);
 
-    using Moves = std::set<Move>;
-    Moves residualMoves;
+    using Moves = std::set<Move,decltype(compMoveBRfirst)>;
+    Moves residualMoves(compMoveBRfirst);
 
     using Cities = std::set<City>;
     Cities residualCities;
@@ -416,26 +434,24 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
         for (Coord y = 0U; y < nRows; ++y) {
             // avoid bottomRight, as it is the goal.
             if ((y < nRows - 1U) || (x < nCols - 1U)) {
-                Dir dir = Dir::Right;
-                City c{Point{x, y}, dir};
-                for (int d = 0; d < FourDir; ++d) {
-                    if (((y > 0U) || (dir != Dir::Down))
-                        && ((y < nRows - 1U) || (dir != Dir::Up))
-                        && ((x > 0U) || (dir != Dir::Right))
-                        && ((x < nCols - 1U) || (dir != Dir::Left))
+
+                City c{Point{x, y}, Dir::Right};
+                for (auto d = 0U; d < FourDir; ++d) {
+                    if (((y > 0U) || (c.d != Dir::Down))
+                        && ((y < nRows - 1U) || (c.d != Dir::Up))
+                        && ((x > 0U) || (c.d != Dir::Right))
+                        && ((x < nCols - 1U) || (c.d != Dir::Left))
                         // speed-up, removing external origin.
                     ) {
                         residualCities.insert(c);
 
-                        Move move{c.p, c.d, 0U};
-                        for (Coord m = 1U; m <= MaxMoveStraight; ++m) {
-                            move.equiD = m;
+                        Move move{c.p, c.d, 1U};
+                        for (; move.equiD <= MaxMoveStraight; move.equiD++) {
                             residualMoves.insert(move);
                         }
                     }
 
-                    rotateDir(dir);
-                    c.d = dir;
+                    rotateDir(c.d);
                 }
             }
         }
@@ -446,11 +462,12 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
     Point bottomRight{nCols - 1U, nRows - 1U};
     auto brHeat = static_cast<Length>(lines[bottomRight.y][bottomRight.x] - '0');
 
-    // Compute first lower-bound
+    // Compute first lower-bounds
 
     MoveLengths moveBounds(0U, hashMove, equiMove); // all with equiD=0U
-
-    {
+    { // No real need to apply improvement as with pointsTry
+      // even in this pre-phase of lower-bound computation,
+      // which reamins anyway quite faster.
         while (!residualCities.empty()) {
             Cities cityToRemove;
 
@@ -465,7 +482,7 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
 
                 Length newMin = 0U;
                 Dir dirNew = move.d;
-                for (auto dNext = 0; dNext < FourDir; ++dNext) {
+                for (auto dNext = 0U; dNext < FourDir; ++dNext) {
                     // != 2 <-> avoid opposite.
                     if (dNext != 2) {
                         Point pNew = move.p;
@@ -522,125 +539,186 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    while (!residualMoves.empty()) {
-        Moves movesToRemove;
-        bool someRemoveOrUpdate = false;
+    constexpr size_t SeedHash = 10000U;
+    static constexpr auto HashPointsL = [](const Point p) { return p.x + (SeedHash * p.y); };
+    static std::function<Coord(Point)> HashPoints = HashPointsL;
 
-        for (const Move move : residualMoves) {
-            auto heat = static_cast<Length>(lines[move.p.y][move.p.x] - '0');
+    std::unordered_set<Point,decltype(HashPoints)> pointsTry(0U,HashPoints);
+    {
+        Point pBR{rowsLength-1U,lineCount-1U};
 
-            bool remove = true;
+        if (lineCount > 1U){
+            pBR.y--;
+            pointsTry.insert(pBR);
+            pBR.y++;
+        }
 
-            // Now try to move beyond.
+        if (rowsLength > 1U){
+            pBR.x--;
+            pointsTry.insert(pBR);
+        }
+    }
 
-            Dir dirNew = move.d;
-            Length newMin = 0U;
-            const auto cItMove = moveLengths.find(move);
-            if (cItMove != moveLengths.end()) {
-                newMin = cItMove->second;
-            }
+    unsigned nMoveCheck = 0U;
+    bool someRemoveOrUpdate = true;
+    while (someRemoveOrUpdate && !residualMoves.empty()) {
+        Moves movesToRemove(compMoveBRfirst);
+        std::unordered_set<Point,decltype(HashPoints)> nextPointTry(0U,HashPoints);
+        someRemoveOrUpdate = false;
 
-            for (auto dNext = 0; dNext < FourDir; ++dNext) {
-                // != 2 <-> avoid opposite.
-                if ((dNext != 2) && ((move.equiD < MaxMoveStraight) || (dirNew != move.d))) {
-                    Point pNew = move.p;
-                    if (movePoint(pNew, dirNew)) {
-                        Length newTry = 0U;
+        for(const auto& point : pointsTry)
+        {
+            bool someUpdateAlreadyForThisPoint = false;
+            auto itMove = residualMoves.lower_bound(Move{point,Dir{0U},0U});
+            for (;(itMove != residualMoves.end()) && (itMove->p == point); ++itMove)
+            {
+                const auto& move = *itMove;
 
-                        if (pNew == bottomRight) {
-                            // regardless of direction and equiD.
-                            newTry = brHeat + heat;
-                        } else {
-                            Length mNew = (dirNew == move.d) ? move.equiD + 1U : 1U;
-                            Move moveNew{pNew, dirNew, mNew};
+                auto heat = static_cast<Length>(lines[move.p.y][move.p.x] - '0');
 
-                            const auto cIt = moveLengths.find(moveNew);
+                bool remove = true;
 
-                            bool forceTryNotRemove = true;
-                            if (cIt != moveLengths.end()) {
-                                newTry = cIt->second + heat;
-                                forceTryNotRemove = false;
+                // Now try to move beyond.
+
+                Dir dirNew = move.d;
+                Length newMin = 0U;
+                const auto cItMove = moveLengths.find(move);
+                if (cItMove != moveLengths.end()) {
+                    newMin = cItMove->second;
+                }
+
+                constexpr auto Two = 2U;
+                for (auto dNext = 0U; dNext < FourDir; ++dNext) {
+                    // != 2 <-> avoid opposite.
+                    if ((dNext != Two) && ((move.equiD < MaxMoveStraight) || (dirNew != move.d))) {
+                        Point pNew = move.p;
+                        if (movePoint(pNew, dirNew)) {
+                            Length newTry = 0U;
+
+                            if (pNew == bottomRight) {
+                                // regardless of direction and equiD.
+                                newTry = brHeat + heat;
                             } else {
-                                // for sure residualMoves also still contains moveNew,
-                                // therefore forceTryNotRemove remains true.
-                                if (residualMoves.count(moveNew) == 0U) {
-                                    throw std::runtime_error("residualMoves error!");
-                                }
-                            }
+                                Length mNew = (dirNew == move.d) ? move.equiD + 1U : 1U;
+                                Move moveNew{pNew, dirNew, mNew};
 
-                            if (remove // -> otherwise useless; this check also simplifies the
-                                        // code.
-                                && (forceTryNotRemove || (residualMoves.count(moveNew) > 0U))) {
-                                // computation for moveNew is not ended.
+                                const auto cIt = moveLengths.find(moveNew);
 
-                                // remove = false; but check bounds
-
-                                bool forceRemove = false;
-                                if (newMin > 0U) {
-                                    // bound checks to check remove to false:
-
-                                    Move moveRelax = moveNew;
-
-                                    moveRelax.equiD = 0U;
-                                    if (moveBounds.count(moveRelax) == 0U) {
-                                        throw std::runtime_error("moveBounds error!");
+                                bool forceTryNotRemove = true;
+                                if (cIt != moveLengths.end()) {
+                                    newTry = cIt->second + heat;
+                                    forceTryNotRemove = false;
+                                }/* else {
+                                    // for sure residualMoves also still contains moveNew,
+                                    // therefore forceTryNotRemove remains true.
+                                    if (residualMoves.count(moveNew) == 0U) {
+                                        throw std::runtime_error("residualMoves error!");
                                     }
-                                    auto bound = moveBounds[moveRelax];
-                                    if (bound + heat >= newMin) {
-                                        forceRemove = true;
-                                    }
+                                }*/
 
-                                    if (!forceRemove) {
-                                        // also try the move with reduced equiD,
-                                        // for sure more relaxed.
-                                        if (moveNew.equiD > 1U) {
-                                            moveRelax.equiD = moveNew.equiD - 1U;
-                                            if (residualMoves.count(moveRelax) == 0U) {
-                                                if (moveLengths.count(moveRelax) == 0U) {
-                                                    throw std::runtime_error(
-                                                        "moveLengths error!");
-                                                }
-                                                if (moveLengths[moveRelax] + heat >= newMin) {
-                                                    forceRemove = true;
+                                if (remove // -> otherwise useless; this check also simplifies the
+                                            // code.
+                                    && (forceTryNotRemove || (residualMoves.count(moveNew) > 0U))) {
+                                    // computation for moveNew is not ended.
+
+                                    // remove = false; but check bounds
+
+                                    bool forceRemove = false;
+                                    if (newMin > 0U) {
+                                        // bound checks to set remove to false:
+
+                                        Move moveRelax = moveNew;
+
+                                        moveRelax.equiD = 0U;
+                                        /*if (moveBounds.count(moveRelax) == 0U) {
+                                            throw std::runtime_error("moveBounds error!");
+                                        }*/
+                                        auto bound = moveBounds[moveRelax];
+                                        if (bound + heat >= newMin) {
+                                            forceRemove = true;
+                                        }
+
+                                        if (!forceRemove) {
+                                            // also try the move with reduced equiD,
+                                            // for sure more relaxed.
+                                            if (moveNew.equiD > 1U) {
+                                                moveRelax.equiD = moveNew.equiD - 1U;
+                                                if (residualMoves.count(moveRelax) == 0U) {
+                                                    /*if (moveLengths.count(moveRelax) == 0U) {
+                                                        throw std::runtime_error(
+                                                            "moveLengths error!");
+                                                    }*/
+                                                    if (moveLengths[moveRelax] + heat >= newMin) {
+                                                        forceRemove = true;
+                                                    } // else: need to wait.
                                                 } // else: need to wait.
-                                            } // else: need to wait.
+                                            }
                                         }
                                     }
+
+                                    remove = forceRemove;
                                 }
-
-                                remove = forceRemove;
                             }
-                        }
 
-                        if (newTry > 0U) {
-                            if ((newMin == 0U) || (newTry < newMin)) {
-                                newMin = newTry;
+                            if (newTry > 0U) {
+                                if ((newMin == 0U) || (newTry < newMin)) {
+                                    newMin = newTry;
+                                }
                             }
                         }
                     }
+
+                    rotateDir(dirNew);
                 }
 
-                rotateDir(dirNew);
-            }
+                if (newMin > 0U) {
+                    if (cItMove == moveLengths.end()) {
+                        moveLengths[move] = newMin;
+                        someRemoveOrUpdate = true;
+                    } else if (newMin < cItMove->second) {
+                        cItMove->second = newMin;
+                        someRemoveOrUpdate = true;
+                    }
+                    /*
+                    std::cout << "y = " << move.p.y << " ; x = " << move.p.x
+                                << " ; d = " << toUnderlying(move.d) << " ; m = " << move.equiD
+                                << " ; heat = " << newMin << std::endl;
+                    */
 
-            if (newMin > 0U) {
-                if (cItMove == moveLengths.end()) {
-                    moveLengths[move] = newMin;
-                    someRemoveOrUpdate = true;
-                } else if (newMin < cItMove->second) {
-                    cItMove->second = newMin;
+                    if (!someUpdateAlreadyForThisPoint){ // else: useless try to insert
+                        Point pAround{move.p};
+                        pAround.x++;
+                        if (pAround.x < rowsLength){
+                            nextPointTry.insert(pAround);
+                        }
+
+                        if (pAround.x > 1U){
+                            pAround.x -= 2U;
+                            nextPointTry.insert(pAround);
+                            pAround.x += 2U;
+                        }
+                        pAround.x--;
+
+                        pAround.y++;
+                        if (pAround.y < lineCount){
+                            nextPointTry.insert(pAround);
+                        }
+
+                        if (pAround.y > 1U){
+                            pAround.y -= 2U;
+                            nextPointTry.insert(pAround);
+                            pAround.y += 2U;
+                        }
+                        pAround.x--;
+                    }
+                }
+
+                if (remove) {
+                    movesToRemove.insert(move);
                     someRemoveOrUpdate = true;
                 }
-                /*
-                std::cout << "y = " << move.p.y << " ; x = " << move.p.x
-                            << " ; d = " << toUnderlying(move.d) << " ; m = " << move.equiD
-                            << " ; heat = " << newMin << std::endl;
-                */
-            }
 
-            if (remove) {
-                movesToRemove.insert(move);
-                someRemoveOrUpdate = true;
+                ++nMoveCheck;
             }
         }
 
@@ -648,10 +726,7 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
             residualMoves.erase(m);
         }
 
-        if (!someRemoveOrUpdate) {
-            // Needed as cycles of nodes will remain.
-            break;
-        }
+        pointsTry = std::move(nextPointTry);
     }
 
     Length minPath = 0U;
@@ -680,6 +755,7 @@ auto day17Part1(std::string_view streamSource, bool sourceIsFilePath)
     // std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "N. rows " << nRows << std::endl;
     std::cout << "N. cols " << nCols << std::endl;
+    std::cout << "nMoveCheck " << nMoveCheck << std::endl;
     if (minPath == 0U) {
         throw std::invalid_argument("Impossible to reach bottom-right from top-left!");
     }
@@ -716,11 +792,13 @@ OUTPUT:
 example:
 N. rows 13
 N. cols 13
+nMoveCheck 12128
 Result: 102
 
 real input:
 N. rows 141
 N. cols 141
+nMoveCheck 26384917
 Result: 916
 */
 
