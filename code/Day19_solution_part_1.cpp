@@ -1182,7 +1182,7 @@ auto day19Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Workflow count " << workflows.size() << std::endl;
     std::cout << "Rule count " << ruleCount << std::endl;
     std::cout << "Accepted parts n. " << acceptedParts << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 19 p.1 : " << res << "\n\n\n";
     return res;
 }
 

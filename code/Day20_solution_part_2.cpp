@@ -691,7 +691,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
                     if (!pulseOut) {
                         if (dest == wantedLow) {
                             std::cout << "low pulse to " << wantedLow << std::endl;
-                            std::cout << "\nResult: " << currentCycleCount << "\n\n\n";
+                            std::cout << "\nResult Day 20 p.2 : " << currentCycleCount << "\n\n\n";
                             //TODO: generalize the code! A low pulse does not mean a single low pulse,
                             //add code to check one only.
                             return currentCycleCount;
@@ -895,7 +895,7 @@ auto day20Part2(std::string_view streamSource, bool sourceIsFilePath)
                 res = resCycle.second;
             }
 
-            std::cout << "Result: (speed-up result through lcm): " << res << std::endl;
+            std::cout << "Result Day 20 p.2 : (speed-up result through lcm): " << res << std::endl;
             return res;
         }
 

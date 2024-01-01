@@ -438,7 +438,7 @@ auto day16Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "Result: " << tiles.size() << "\n\n\n";
+    std::cout << "Result Day 16 p.1 : " << tiles.size() << "\n\n\n";
 
     return tiles.size();
 }

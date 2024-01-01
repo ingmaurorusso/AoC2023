@@ -1236,3 +1236,4 @@ false ?
 } // namespace Day25
 
 unsigned long day25Part1(std::string_view streamSource, bool sourceIsFilePath);
+unsigned long day25Part2(std::string_view streamSource, bool sourceIsFilePath);

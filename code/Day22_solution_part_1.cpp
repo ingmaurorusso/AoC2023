@@ -1849,7 +1849,7 @@ auto day22Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "Brick count " << bricks.size() << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 22 p.1 : " << res << "\n\n\n";
     // std::cout << "Total tiles passed on or reached " << points.size() << std::endl;
     // std::cout << "Total tiles reachable exactly " << points.size() << std::endl;
     return res;

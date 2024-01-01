@@ -572,7 +572,7 @@ auto day20Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Cycle ends at " << cycleEnd << std::endl;
 
     auto res = lowPulseCount * highPulseCount;
-    std::cout << "Result: " << res << "\n\n\n";
+    std::cout << "Result Day 20 p.1 : " << res << "\n\n\n";
     return res;
 }
 

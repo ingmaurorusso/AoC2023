@@ -1711,7 +1711,7 @@ auto day25Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     auto res = solvingStartSubset.size() * (vertCount - solvingStartSubset.size());
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 25 p.1 : " << res << "\n\n\n";
 
     return res;
 }

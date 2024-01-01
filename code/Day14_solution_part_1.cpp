@@ -258,7 +258,7 @@ auto day14Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Number of lines " << lineCount << std::endl;
     std::cout << "Total cube rocks " << totCubeRocks << std::endl;
     std::cout << "Total round rocks " << totRoundRocks << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 14 p.1 : " << res << "\n\n\n";
 
     return res;
 }

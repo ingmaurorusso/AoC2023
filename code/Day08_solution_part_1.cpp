@@ -962,7 +962,7 @@ auto day08Part1(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    std::cout << "\nResult: " << stepCount << "\n\n\n";
+    std::cout << "\nResult Day 08 p.1 : " << stepCount << "\n\n\n";
 
     return stepCount;
 }

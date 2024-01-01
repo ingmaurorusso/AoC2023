@@ -418,7 +418,7 @@ auto day21Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. field cols " << nCols << std::endl;
     std::cout << "Rock count " << rocksInBasicField << std::endl;
     std::cout << "Total tiles passed on or reached " << allPoints.size() << std::endl;
-    std::cout << "Result: " << points.size() << "\n\n\n";
+    std::cout << "Result Day 21 p.1 : " << points.size() << "\n\n\n";
 
     return points.size();
 }

@@ -1158,7 +1158,7 @@ unsigned long day01Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of lines with first chars: " << lineCountFirstChars << std::endl;
     std::cout << "N. of lines with last chars: " << lineCountLastChars << std::endl;
     std::cout << "N. of lines with both chars: " << lineCountBothChars << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 01 p.2 : " << sum << "\n\n\n";
 
     return sum;
 }

@@ -511,7 +511,7 @@ auto day05Part1(std::string_view streamSource, bool sourceIsFilePath)
     if (currentDest.empty()) {
         throw std::invalid_argument("No final position!");
     }
-    std::cout << "\nResult: " << *currentDest.cbegin() << "\n\n\n";
+    std::cout << "\nResult Day 05 p.1 : " << *currentDest.cbegin() << "\n\n\n";
     return *currentDest.cbegin();
 }
 

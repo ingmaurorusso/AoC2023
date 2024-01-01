@@ -1116,7 +1116,7 @@ unsigned long day01Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of lines with one digit only: " << lineCountOneDigit << std::endl;
     std::cout << "N. of lines with value zero: " << lineCountZero << std::endl;
     std::cout << "N. of lines with leading zero: " << lineCountLeadingZero << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 01 p.1 : " << sum << "\n\n\n";
 
     return sum;
 }

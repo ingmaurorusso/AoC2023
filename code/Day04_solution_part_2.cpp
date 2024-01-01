@@ -414,7 +414,7 @@ auto day04Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of repeated my numbers: " << nRepeatedMyNumbers << std::endl;
     std::cout << "N. of cards without win numbers: " << nCardsWithoutWinNumbers << std::endl;
     std::cout << "N. of cards without my numbers: " << nCardsWithoutMyNumbers << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 04 p.2 : " << sum << "\n\n\n";
 
     return sum;
 }

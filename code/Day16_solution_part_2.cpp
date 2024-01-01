@@ -611,7 +611,7 @@ auto day16Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "When from " << pointToStr(bestPoint) << std::endl;
     // TODO: specify direction in case of corner bestPoint.
 
-    std::cout << "Result: " << maxConfig << "\n\n\n";
+    std::cout << "Result Day 16 p.2 : " << maxConfig << "\n\n\n";
     return maxConfig;
 }
 

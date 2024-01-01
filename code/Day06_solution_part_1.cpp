@@ -208,7 +208,7 @@ auto day06Part1(std::string_view streamSource, bool sourceIsFilePath)
                     << " ; n. total = " << (maxPush - minPush + 1) << std::endl;
     }
 
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 06 p.1 : " << res << "\n\n\n";
 
     return res;
 }

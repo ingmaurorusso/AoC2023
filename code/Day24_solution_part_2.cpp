@@ -829,7 +829,7 @@ auto day24Part2(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "Hails count " << nHails << std::endl;
-    std::cout << "Result: " << static_cast<Coord>(res + 0.1) << "\n\n\n";
+    std::cout << "Result Day 24 p.2 : " << static_cast<Coord>(res + 0.1) << "\n\n\n";
     return static_cast<Coord>(res + 0.1);
 }
 

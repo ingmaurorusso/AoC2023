@@ -340,7 +340,7 @@ auto day11Part2(std::string_view streamSource, bool sourceIsFilePath)
     constexpr size_t Expansion = 1000000UL;
     sumDist += ((Expansion - 1UL) * additions);
 
-    std::cout << "\nResult " << sumDist << std::endl;
+    std::cout << "\nResult Day 11 p.2 : " << sumDist << std::endl;
 
     return sumDist;
 }

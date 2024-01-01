@@ -334,7 +334,7 @@ unsigned long day02Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of (non-total) colors: " << nTotalColors << std::endl;
     std::cout << "N. of (non-total) extractions: " << nTotalExtractions << std::endl;
     std::cout << "N. of zero-value numbers: " << nZeroNumbers << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 02 p.1 : " << sum << "\n\n\n";
 
     return sum;
 }

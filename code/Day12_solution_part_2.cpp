@@ -1533,7 +1533,7 @@ auto day12Part2(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "Lines count " << lineCount << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 12 p.2 : " << res << "\n\n\n";
     return res;
 }
 

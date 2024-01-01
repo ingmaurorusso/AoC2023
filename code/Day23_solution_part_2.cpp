@@ -728,7 +728,7 @@ auto day23Part2(std::string_view streamSource, bool sourceIsFilePath, bool runPa
         scrollIdx = nextIdx;
     } while (scrollIdx != goalIdx);
     std::cout << pointToStr(goalP) << '\n';
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 23 p.2 : " << res << "\n\n\n";
     return res;
 }
 

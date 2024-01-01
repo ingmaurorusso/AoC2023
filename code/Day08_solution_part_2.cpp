@@ -1328,7 +1328,7 @@ auto day08Part2(std::string_view streamSource, bool sourceIsFilePath)
                                     return static_cast<StepCount>(0U);
                                 } // else
                                 {
-                                    std::cout << "Result: fast compute: "
+                                    std::cout << "Result Day 08 p.2 : fast compute: "
                                                 << (stepCount + L * totCycles) << std::endl;
                                     return (stepCount + L * totCycles);
                                 }
@@ -1356,7 +1356,7 @@ auto day08Part2(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    std::cout << "\nResult: " << stepCount << "\n\n\n";
+    std::cout << "\nResult Day 08 p.2 : " << stepCount << "\n\n\n";
     return stepCount;
 }
 

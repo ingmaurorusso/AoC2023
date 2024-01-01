@@ -1509,7 +1509,7 @@ auto day18Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Lines count " << lineCount << std::endl;
     std::cout << "start Point " << pointToStr(startP) << std::endl;
     std::cout << "countDirJokes " << countDirJokes << std::endl;
-    std::cout << "\nResult n. : " << cubes << std::endl;
+    std::cout << "\nResult Day 18 p.2  : " << cubes << std::endl;
     return cubes;
 }
 

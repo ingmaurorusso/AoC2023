@@ -1250,7 +1250,7 @@ auto day19Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Accepted ranges " << acceptedRanges.size() << std::endl;
     std::cout << "Rejected ranges " << rejectedRanges << std::endl;
     std::cout << "Further rejected ranges for cycle " << rejectForCycle << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 19 p.2 : " << res << "\n\n\n";
     return res;
 }
 

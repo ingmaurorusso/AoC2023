@@ -330,7 +330,7 @@ auto day03Part1(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "N. of leading zero: " << nLeadingZeros << std::endl;
     std::cout << "N. of zero values: " << nZeroValues << std::endl;
     std::cout << "N. of total positive values: " << nTotalPositiveValues << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 03 p.1 : " << sum << "\n\n\n";
 
     return sum;
 }

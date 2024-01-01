@@ -352,7 +352,7 @@ auto day09Part1(std::string_view streamSource, bool sourceIsFilePath)
     }
 
     std::cout << "n. of history " << historyCount << std::endl;
-    std::cout << "\nResult: " << sum << "\n\n\n";
+    std::cout << "\nResult Day 09 p.1 : " << sum << "\n\n\n";
     return sum;
 }
 

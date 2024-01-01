@@ -1714,7 +1714,7 @@ auto day13Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Number of lines " << lineCount << std::endl;
     std::cout << "Total non-empty lines " << nonEmptyLines << std::endl;
     std::cout << "Total patterns " << patternCount << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 13 p.2 : " << res << "\n\n\n";
 
     return res;
 }

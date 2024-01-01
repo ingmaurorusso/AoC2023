@@ -232,7 +232,7 @@ auto day06Part2(std::string_view streamSource, bool sourceIsFilePath)
         }
     }
 
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 06 p.2 : " << res << "\n\n\n";
 
     return res;
 }

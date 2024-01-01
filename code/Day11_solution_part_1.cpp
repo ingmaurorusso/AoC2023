@@ -331,7 +331,7 @@ auto day11Part1(std::string_view streamSource, bool sourceIsFilePath)
 
     std::cout << "Line count " << lineCount << std::endl;
     std::cout << "Galaxy count " << galaxies.size() << std::endl;
-    std::cout << "\nResult " << sumDist << std::endl;
+    std::cout << "\nResult Day 11 p.1 : " << sumDist << std::endl;
 
     return sumDist;
 }

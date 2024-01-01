@@ -609,7 +609,7 @@ auto day05Part2(std::string_view streamSource, bool sourceIsFilePath)
     if (currentDest.empty()) {
         throw std::invalid_argument("No final position!");
     }
-    std::cout << "\nResult: " << currentDest.cbegin()->first << "\n\n\n";
+    std::cout << "\nResult Day 05 p.2 : " << currentDest.cbegin()->first << "\n\n\n";
     return currentDest.cbegin()->first;
 }
 

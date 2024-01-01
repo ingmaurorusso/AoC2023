@@ -530,7 +530,7 @@ auto day14Part2(std::string_view streamSource, bool sourceIsFilePath)
     std::cout << "Total round rocks " << totRoundRocks << std::endl;
     std::cout << "firstTimeRepeat " << firstTimeRepeat << std::endl;
     std::cout << "secondTimeRepeat " << secondTimeRepeat << std::endl;
-    std::cout << "\nResult: " << res << "\n\n\n";
+    std::cout << "\nResult Day 14 p.2 : " << res << "\n\n\n";
     return res;
 }
 

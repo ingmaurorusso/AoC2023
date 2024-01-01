@@ -83,7 +83,7 @@ int main()
         results[23U].first = day24Part1(Day24::Input, false);
         results[23U].second = day24Part2(Day24::Input, false);
         results[24U].first = day25Part1(Day25::Input, false);
-        results[24U].second = 0U;
+        results[24U].second = day25Part2(Day25::Input, false);
 
         std::cout << "\n\n\n";
         for(const auto& res : results){
